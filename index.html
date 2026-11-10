@@ -96,13 +96,34 @@
         </div>
       </div>
 
-      <!-- Step-by-Step Route Guide -->
-      <div id="stepGuideBox" class="w-full mt-4 hidden">
-        <div class="bg-[#121a26] border border-slate-700/80 rounded-xl p-3.5">
-          <h3 class="text-xs font-bold text-orange-300 mb-1.5">  一筆書きルート手順（始点から終点まで）</h3>
-          <p id="stepGuideText" class="text-xs sm:text-sm text-slate-200 leading-relaxed"></p>
+    <!-- 解答プロセス（ステップ解説）コントロール＆表示枠 -->
+    <div class="w-full mt-4 bg-[#121a26] border border-cyan-500/30 rounded-xl p-3.5 space-y-2.5">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h3 class="text-xs sm:text-sm font-bold text-cyan-300 flex items-center gap-1.5">
+          <span>💡 自力で解くための思考プロセス解説</span>
+          <span id="processStepBadge" class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-200 text-xs font-mono">待機中</span>
+        </h3>
+        <div class="flex gap-1.5">
+          <button onclick="prevProcessStep()" id="prevStepBtn" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 transition disabled:opacity-40" disabled>
+            ◀ 戻る
+          </button>
+          <button onclick="nextProcessStep()" id="nextStepBtn" class="px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white shadow transition">
+            次の手がかりを見る ▶
+          </button>
         </div>
       </div>
+      <div id="processGuideText" class="text-xs sm:text-sm text-slate-200 leading-relaxed bg-[#0d131c] border border-slate-800 rounded-lg p-3">
+        「次の手がかりを見る ▶」を押すと、どこに注目して線や「×」を確定させていけばいいか、1ステップずつ順番に解説します！（水色の線がそのステップで新しく確定した場所です）
+      </div>
+    </div>
+
+    <!-- Step-by-Step Route Guide -->
+    <div id="stepGuideBox" class="w-full mt-3 hidden">
+      <div class="bg-[#121a26] border border-slate-700/80 rounded-xl p-3.5">
+        <h3 class="text-xs font-bold text-orange-300 mb-1.5">🧭 一筆書きルート手順（始点から終点まで）</h3>
+        <p id="stepGuideText" class="text-xs sm:text-sm text-slate-200 leading-relaxed"></p>
+      </div>
+    </div>
     </section>
 
     <!-- Text Output Section (Primary Request!) -->
@@ -208,6 +229,9 @@
     let endpoints = []; // array of [r, c] vertex coords (max 2)
     let solvedEdges = null; // { h: bool[][], v: bool[][] }
     let solvedPath = null;  // array of [r, c] vertices in order
+    let deductionSteps = []; // 解答プロセスのステップ配列
+    let currentStepIdx = -1; // 現在表示中のステップ番号 (-1は未表示)
+    let activeStepState = null; // ステップ表示用の盤面状態
 
     // Initialize with Preset 0 and solve immediately
     window.onload = function() {
@@ -367,8 +391,11 @@
     function clearSolution() {
       solvedEdges = null;
       solvedPath = null;
+      activeStepState = null;
+      currentStepIdx = -1;
       document.getElementById("solveTimeText").textContent = "";
       document.getElementById("stepGuideBox").classList.add("hidden");
+      resetProcessUI();
       updateStatus("未解決", "info");
       renderBoard();
       renderAsciiDiagram();
@@ -521,17 +548,30 @@
       }
     }
 
-    function drawLineSegment(svg, x1, y1, x2, y2) {
+    function drawLineSegment(svg, x1, y1, x2, y2, color = "#ea580c") {
       const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
       line.setAttribute("x1", x1);
       line.setAttribute("y1", y1);
       line.setAttribute("x2", x2);
       line.setAttribute("y2", y2);
-      line.setAttribute("stroke", "#ea580c");
+      line.setAttribute("stroke", color);
       line.setAttribute("stroke-width", "5.5");
       line.setAttribute("stroke-linecap", "round");
       line.setAttribute("class", "pointer-events-none");
       svg.appendChild(line);
+    }
+
+    function drawCrossMark(svg, cx, cy, color = "#94a3b8") {
+      const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      txt.setAttribute("x", cx);
+      txt.setAttribute("y", cy + 4);
+      txt.setAttribute("text-anchor", "middle");
+      txt.setAttribute("font-size", "13");
+      txt.setAttribute("font-weight", "bold");
+      txt.setAttribute("fill", color);
+      txt.setAttribute("class", "pointer-events-none select-none");
+      txt.textContent = "×";
+      svg.appendChild(txt);
     }
 
     // ==========================================
@@ -604,15 +644,22 @@
       if (result) {
         solvedEdges = result.edges;
         solvedPath = result.path;
+        activeStepState = null; // 最初はフル解答を表示
+        currentStepIdx = -1;
+        buildDeductionProcess(rows, cols, clues, endpoints, solvedEdges); // 思考プロセスを生成
         const ms = (t1 - t0).toFixed(1);
         document.getElementById("solveTimeText").textContent = `(${ms}ミリ秒で計算完了)`;
-        updateStatus("? 解決完了！", "ok");
+        updateStatus("✓ 解決完了！", "ok");
         renderBoard();
         renderAsciiDiagram();
         renderStepByStepGuide(solvedPath);
       } else {
         solvedEdges = null;
         solvedPath = null;
+        activeStepState = null;
+        deductionSteps = [];
+        currentStepIdx = -1;
+        resetProcessUI();
         document.getElementById("solveTimeText").textContent = "";
         document.getElementById("stepGuideBox").classList.add("hidden");
         updateStatus("解が見つかりません（数字や〇の位置を確認してください）", "err");
@@ -1051,6 +1098,250 @@
       }
 
       return { edges: { h, v }, path: finalPath };
+    }
+
+    // ==========================================
+    // 人間の思考プロセス（段階的ヒント＆解説）生成エンジン
+    // ==========================================
+    function resetProcessUI() {
+      const badge = document.getElementById("processStepBadge");
+      const text = document.getElementById("processGuideText");
+      const prevBtn = document.getElementById("prevStepBtn");
+      const nextBtn = document.getElementById("nextStepBtn");
+      if (!badge) return;
+      badge.textContent = deductionSteps.length > 0 ? `全 ${deductionSteps.length} ステップ` : "待機中";
+      text.innerHTML = "「次の手がかりを見る ▶」を押すと、一旦盤面の線が消えて、<strong>どこから順番に線や「×」を確定させていけばいいか</strong>を1ステップずつ水色のハイライト付きで解説します！";
+      prevBtn.disabled = true;
+      nextBtn.disabled = deductionSteps.length === 0;
+      nextBtn.textContent = "ステップ1から見る ▶";
+    }
+
+    function buildDeductionProcess(R, C, cellClues, eps, finalEdges) {
+      deductionSteps = [];
+      const h = Array.from({ length: R + 1 }, () => new Array(C).fill(-1));
+      const v = Array.from({ length: R }, () => new Array(C + 1).fill(-1));
+
+      const clone2D = arr => arr.map(r => [...r]);
+      const recordStep = (title, desc, newH, newV) => {
+        deductionSteps.push({
+          title,
+          desc,
+          h: clone2D(h),
+          v: clone2D(v),
+          newH: clone2D(newH),
+          newV: clone2D(newV)
+        });
+      };
+
+      const emptyFlags = () => ({
+        nh: Array.from({ length: R + 1 }, () => new Array(C).fill(false)),
+        nv: Array.from({ length: R }, () => new Array(C + 1).fill(false)),
+        count: 0
+      });
+
+      const setH = (r, c, val, flags) => {
+        if (h[r][c] === -1) { h[r][c] = val; flags.nh[r][c] = true; flags.count++; }
+      };
+      const setV = (r, c, val, flags) => {
+        if (v[r][c] === -1) { v[r][c] = val; flags.nv[r][c] = true; flags.count++; }
+      };
+
+      // Step A: 「0」の周りの×印を確定
+      let f0 = emptyFlags();
+      let zeroCoords = [];
+      for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+          if (cellClues[r][c] === 0) {
+            zeroCoords.push(`(${r + 1}行,${c + 1}列)`);
+            setH(r, c, 0, f0); setH(r + 1, c, 0, f0);
+            setV(r, c, 0, f0); setV(r, c + 1, 0, f0);
+          }
+        }
+      }
+      if (f0.count > 0) {
+        recordStep(
+          "「0」の周りに×をつける",
+          `まずは一番簡単な「0」のマス ${zeroCoords.join("・")} に注目します。「0」の周りには1本も線が引けないので、四辺すべてに「×」をつけます。`,
+          f0.nh, f0.nv
+        );
+      }
+
+      // Step B: 隣り合う「3」や「3・2…2・3」の平行線セオリー
+      let f3 = emptyFlags();
+      let notes3 = [];
+      for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+          if (cellClues[r][c] === 3) {
+            // 横に3が並ぶ、または2を挟んで3がある
+            let c2 = c + 1;
+            while (c2 < C && cellClues[r][c2] === 2) c2++;
+            if (c2 < C && cellClues[r][c2] === 3) {
+              setV(r, c, 1, f3);
+              setV(r, c2 + 1, 1, f3);
+              for (let k = c + 1; k <= c2; k++) setV(r, k, 1, f3);
+              if (c2 === c + 1) notes3.push(`(${r + 1}行,${c + 1}〜${c2 + 1}列)の並んだ「3・3」`);
+              else notes3.push(`(${r + 1}行,${c + 1}〜${c2 + 1}列)の「3と2のサンドイッチ」`);
+            }
+            // 縦に3が並ぶ、または2を挟んで3がある
+            let r2 = r + 1;
+            while (r2 < R && cellClues[r2][c] === 2) r2++;
+            if (r2 < R && cellClues[r2][c] === 3) {
+              setH(r, c, 1, f3);
+              setH(r2 + 1, c, 1, f3);
+              for (let k = r + 1; k <= r2; k++) setH(k, c, 1, f3);
+              if (r2 === r + 1) notes3.push(`(${r + 1}〜${r2 + 1}行,${c + 1}列)の縦並びの「3・3」`);
+              else notes3.push(`(${r + 1}〜${r2 + 1}行,${c + 1}列)の縦の「3と2のサンドイッチ」`);
+            }
+          }
+        }
+      }
+      if (f3.count > 0) {
+        recordStep(
+          "並んだ「3」の平行線セオリー",
+          `${notes3.slice(0, 3).join("や")}に注目！「3と3が隣り合う場所」や「3と3の間に2が挟まれている場所」は、間の線と両端の外側の線がすべて平行に確定します。`,
+          f3.nh, f3.nv
+        );
+      }
+
+      // Step C: 数字と点（行き止まり防止・〇の制限）の論理連鎖を段階的に回す
+      for (let loop = 1; loop <= 8; loop++) {
+        let fl = emptyFlags();
+        let reasons = [];
+
+        // 1. 各マスの数字チェック（残り辺数＝必要本数、または必要本数達成済み）
+        for (let r = 0; r < R; r++) {
+          for (let c = 0; c < C; c++) {
+            const cl = cellClues[r][c];
+            if (cl === null) continue;
+            const edges = [
+              { type: 'h', r, c, val: h[r][c] },
+              { type: 'h', r: r + 1, c, val: h[r + 1][c] },
+              { type: 'v', r, c, val: v[r][c] },
+              { type: 'v', r, c: c + 1, val: v[r][c + 1] }
+            ];
+            const onCnt = edges.filter(e => e.val === 1).length;
+            const undec = edges.filter(e => e.val === -1);
+            if (undec.length > 0) {
+              if (onCnt === cl) {
+                undec.forEach(e => e.type === 'h' ? setH(e.r, e.c, 0, fl) : setV(e.r, e.c, 0, fl));
+                reasons.push(`(${r + 1}行,${c + 1}列)の「${cl}」はすでに線が${cl}本あるので残りは×`);
+              } else if (onCnt + undec.length === cl) {
+                undec.forEach(e => e.type === 'h' ? setH(e.r, e.c, 1, fl) : setV(e.r, e.c, 1, fl));
+                reasons.push(`(${r + 1}行,${c + 1}列)の「${cl}」は残りの辺がちょうど${cl - onCnt}本なので線が確定`);
+              }
+            }
+          }
+        }
+
+        // 2. 各点のチェック（〇は1本だけ、通常の点は行き止まり禁止＆枝分かれ禁止）
+        for (let r = 0; r <= R; r++) {
+          for (let c = 0; c <= C; c++) {
+            const isEp = eps.some(pt => pt[0] === r && pt[1] === c);
+            const adj = [];
+            if (c > 0) adj.push({ type: 'h', r, c: c - 1, val: h[r][c - 1] });
+            if (c < C) adj.push({ type: 'h', r, c, val: h[r][c] });
+            if (r > 0) adj.push({ type: 'v', r: r - 1, c, val: v[r - 1][c] });
+            if (r < R) adj.push({ type: 'v', r, c, val: v[r][c] });
+
+            const onCnt = adj.filter(e => e.val === 1).length;
+            const undec = adj.filter(e => e.val === -1);
+            if (undec.length === 0) continue;
+
+            if (isEp) {
+              if (onCnt === 1) {
+                undec.forEach(e => e.type === 'h' ? setH(e.r, e.c, 0, fl) : setV(e.r, e.c, 0, fl));
+                reasons.push(`〇印からは線が1本しか出ないので他の方向は×`);
+              } else if (onCnt === 0 && undec.length === 1) {
+                undec.forEach(e => e.type === 'h' ? setH(e.r, e.c, 1, fl) : setV(e.r, e.c, 1, fl));
+                reasons.push(`〇印の唯一の出口として線が確定`);
+              }
+            } else {
+              if (onCnt === 2) {
+                undec.forEach(e => e.type === 'h' ? setH(e.r, e.c, 0, fl) : setV(e.r, e.c, 0, fl));
+                reasons.push(`線が2本繋がった点からは枝分かれできないため残りは×`);
+              } else if (onCnt === 1 && undec.length === 1) {
+                undec.forEach(e => e.type === 'h' ? setH(e.r, e.c, 1, fl) : setV(e.r, e.c, 1, fl));
+                reasons.push(`行き止まりを防ぐため、線の先がそのまま1本道で確定`);
+              } else if (onCnt === 0 && undec.length === 1) {
+                undec.forEach(e => e.type === 'h' ? setH(e.r, e.c, 0, fl) : setV(e.r, e.c, 0, fl));
+                reasons.push(`袋小路（入っても出られない点）になる場所を×に`);
+              }
+            }
+          }
+        }
+
+        if (fl.count === 0) break;
+        const uniqueReasons = [...new Set(reasons)].slice(0, 3);
+        recordStep(
+          `確定した線と×からの連鎖（第${loop}段階）`,
+          `${uniqueReasons.join(" / ")} といったルールから、水色の線と×印が自動的に決まります！`,
+          fl.nh, fl.nv
+        );
+      }
+
+      // 最終ステップ：残りの一筆書きルート完成
+      let fFinal = emptyFlags();
+      for (let r = 0; r <= R; r++) {
+        for (let c = 0; c < C; c++) {
+          const ans = finalEdges.h[r][c] ? 1 : 0;
+          if (h[r][c] !== ans) { h[r][c] = ans; if (ans === 1) { fFinal.nh[r][c] = true; fFinal.count++; } }
+        }
+      }
+      for (let r = 0; r < R; r++) {
+        for (let c = 0; c <= C; c++) {
+          const ans = finalEdges.v[r][c] ? 1 : 0;
+          if (v[r][c] !== ans) { v[r][c] = ans; if (ans === 1) { fFinal.nv[r][c] = true; fFinal.count++; } }
+        }
+      }
+      if (fFinal.count > 0 || deductionSteps.length === 0) {
+        recordStep(
+          "残りの数字と一筆書きルートを繋いで完成！",
+          "途中で小ループ（輪っか）ができないように注意しながら、残りの数字の条件を満たすように一筆書きで繋ぎ合わせると、ゴール〇まで1本の道が繋がります！",
+          fFinal.nh, fFinal.nv
+        );
+      }
+
+      resetProcessUI();
+    }
+
+    function applyProcessStepView() {
+      const badge = document.getElementById("processStepBadge");
+      const text = document.getElementById("processGuideText");
+      const prevBtn = document.getElementById("prevStepBtn");
+      const nextBtn = document.getElementById("nextStepBtn");
+
+      const step = deductionSteps[currentStepIdx];
+      activeStepState = step;
+      badge.textContent = `ステップ ${currentStepIdx + 1} / ${deductionSteps.length}`;
+      text.innerHTML = `<strong class="text-cyan-300">【ステップ ${currentStepIdx + 1}：${step.title}】</strong><br>${step.desc}`;
+
+      prevBtn.disabled = currentStepIdx <= 0;
+      if (currentStepIdx >= deductionSteps.length - 1) {
+        nextBtn.textContent = "フル解答表示に戻す";
+      } else {
+        nextBtn.textContent = "次の手がかりを見る ▶";
+      }
+      renderBoard();
+    }
+
+    function nextProcessStep() {
+      if (deductionSteps.length === 0) return;
+      if (currentStepIdx >= deductionSteps.length - 1) {
+        // フル解答表示に戻す
+        activeStepState = null;
+        currentStepIdx = -1;
+        resetProcessUI();
+        renderBoard();
+        return;
+      }
+      currentStepIdx++;
+      applyProcessStepView();
+    }
+
+    function prevProcessStep() {
+      if (currentStepIdx <= 0) return;
+      currentStepIdx--;
+      applyProcessStepView();
     }
   </script>
 </body>
