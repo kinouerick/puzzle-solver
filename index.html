@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+п»ї<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>€к•MЏ‘‚«ѓpѓYѓ‹ЃE“Б‰»Њ^ѓ\ѓ‹ѓoЃ[Ѓ•ѓqѓ“ѓg‰Ж’л‹іЋt</title>
+    <title>дёЂз­†ж›ёгЃЌгѓ‘г‚єгѓ«гѓ»з‰№еЊ–ећ‹г‚Ѕгѓ«гѓђгѓјпј†гѓ’гѓігѓ€е®¶еє­ж•™её«</title>
     <style>
         :root {
             --bg-color: #1a1a2e;
@@ -66,7 +66,7 @@
             padding: 10px;
             margin-bottom: 12px;
             box-sizing: border-box;
-            /* Ќ¶’[‚ЄѓNѓЉѓbѓv‚і‚к‚И‚ў‚Ѕ‚Я‚Мѓ}Ѓ[ѓWѓ“Ћ©“®’Іђ® */
+            /* е·¦з«ЇгЃЊг‚ЇгѓЄгѓѓгѓ—гЃ•г‚ЊгЃЄгЃ„гЃџг‚ЃгЃ®гѓћгѓјг‚ёгѓіи‡Єе‹•иЄїж•ґ */
             display: flex;
             justify-content: flex-start;
         }
@@ -127,50 +127,50 @@
 <body>
 
 <div class="container">
-    <h2>?? €к•MЏ‘‚«ѓpѓYѓ‹ЃE“Б‰»Њ^ѓ\ѓ‹ѓoЃ[Ѓ•ѓqѓ“ѓg‰Ж’л‹іЋt</h2>
+    <h2>?? дёЂз­†ж›ёгЃЌгѓ‘г‚єгѓ«гѓ»з‰№еЊ–ећ‹г‚Ѕгѓ«гѓђгѓјпј†гѓ’гѓігѓ€е®¶еє­ж•™её«</h2>
     
     <div class="controls">
         <select id="presetSelect" onchange="loadPreset()">
-            <option value="p4">‘ж4–в (12Ѓ~12 “Б‘еѓTѓCѓY)</option>
-            <option value="p3">‘ж3–в (8Ѓ~6 ѓ}ѓX)</option>
-            <option value="p2">‘ж2–в (9Ѓ~6 ѓ}ѓX)</option>
-            <option value="p1">‘ж1–в (7Ѓ~7 ѓ}ѓX)</option>
+            <option value="p4">з¬¬4е•Џ (12Г—12 з‰№е¤§г‚µг‚¤г‚є)</option>
+            <option value="p3">з¬¬3е•Џ (8Г—6 гѓћг‚№)</option>
+            <option value="p2">з¬¬2е•Џ (9Г—6 гѓћг‚№)</option>
+            <option value="p1">з¬¬1е•Џ (7Г—7 гѓћг‚№)</option>
         </select>
-        <button class="hint-btn" onclick="nextHint()">?? ѓqѓ“ѓg‚р1ѓXѓeѓbѓvђi‚Я‚й</button>
-        <button class="primary" onclick="solvePuzzle()">? ѓtѓ‹‰р“љ‚р•\Ћ¦</button>
-        <button onclick="clearLines()">?? ђь‚рѓNѓЉѓA</button>
-        <button id="fitToggleBtn" onclick="toggleFit()">?? ‰ж–К•ќ‚ЙЌ‡‚н‚№‚й: ON</button>
+        <button class="hint-btn" onclick="nextHint()">?? гѓ’гѓігѓ€г‚’1г‚№гѓ†гѓѓгѓ—йЂІг‚Ѓг‚‹</button>
+        <button class="primary" onclick="solvePuzzle()">? гѓ•гѓ«и§Јз­”г‚’иЎЁз¤є</button>
+        <button onclick="clearLines()">?? з·љг‚’г‚ЇгѓЄг‚ў</button>
+        <button id="fitToggleBtn" onclick="toggleFit()">?? з”»йќўе№…гЃ«еђ€г‚ЏгЃ›г‚‹: ON</button>
     </div>
 
-    <!-- ”Х–К•`‰жѓGѓЉѓA -->
+    <!-- з›¤йќўжЏЏз”»г‚ЁгѓЄг‚ў -->
     <div class="board-wrapper fit-screen" id="boardWrapper">
         <canvas id="puzzleCanvas"></canvas>
     </div>
 
-    <!-- ѓqѓ“ѓgЃE‰рђаѓpѓlѓ‹ -->
+    <!-- гѓ’гѓігѓ€гѓ»и§ЈиЄ¬гѓ‘гѓЌгѓ« -->
     <div class="panel" id="tutorPanel">
-        <h3>?? ‰р‚«•ыѓXѓeѓbѓv‰рђа</h3>
-        <p id="tutorText">Ѓuѓqѓ“ѓg‚р1ѓXѓeѓbѓvђi‚Я‚йЃv‚р‰џ‚·‚ЖЃAђlЉФ‚МѓZ„ЂѓЉЃ[‚ЙЉо‚Г‚ў‚ЅЌЕЏ‰‚МЉm’иѓ|ѓCѓ“ѓg‚Ж‰рђа‚Є•\Ћ¦‚і‚к‚Ь‚·ЃI</p>
+        <h3>?? и§ЈгЃЌж–№г‚№гѓ†гѓѓгѓ—и§ЈиЄ¬</h3>
+        <p id="tutorText">гЂЊгѓ’гѓігѓ€г‚’1г‚№гѓ†гѓѓгѓ—йЂІг‚Ѓг‚‹гЂЌг‚’жЉјгЃ™гЃЁгЂЃдєєй–“гЃ®г‚»РѕгѓЄгѓјгЃ«еџєгЃҐгЃ„гЃџжњЂе€ќгЃ®зўєе®љгѓќг‚¤гѓігѓ€гЃЁи§ЈиЄ¬гЃЊиЎЁз¤єгЃ•г‚ЊгЃѕгЃ™пјЃ</p>
     </div>
 
-    <!-- ѓeѓLѓXѓgѓfЃ[ѓ^“ьЏo—Нѓpѓlѓ‹ -->
+    <!-- гѓ†г‚­г‚№гѓ€гѓ‡гѓјг‚їе…Ґе‡єеЉ›гѓ‘гѓЌгѓ« -->
     <div class="panel">
         <div class="flex-row">
-            <strong>?? ”Х–КѓeѓLѓXѓgѓfЃ[ѓ^ (ѓXѓNѓVѓ‡‚©‚зЋ©“®•ПЉ·—p)</strong>
-            <button onclick="applyTextPreset()" style="padding: 4px 8px; font-size: 0.8rem;">ѓeѓLѓXѓg”Ѕ‰f</button>
+            <strong>?? з›¤йќўгѓ†г‚­г‚№гѓ€гѓ‡гѓјг‚ї (г‚№г‚Їг‚·гѓ§гЃ‹г‚‰и‡Єе‹•е¤‰жЏ›з”Ё)</strong>
+            <button onclick="applyTextPreset()" style="padding: 4px 8px; font-size: 0.8rem;">гѓ†г‚­г‚№гѓ€еЏЌж </button>
         </div>
         <textarea id="dataInput"></textarea>
     </div>
 
-    <!-- ѓeѓLѓXѓg‰р“љѓpѓlѓ‹ -->
+    <!-- гѓ†г‚­г‚№гѓ€и§Јз­”гѓ‘гѓЌгѓ« -->
     <div class="panel" id="resultPanel" style="display:none;">
-        <h3>?? ѓeѓLѓXѓgЉ®ђ¬ђ} (ASCII)</h3>
+        <h3>?? гѓ†г‚­г‚№гѓ€е®Њж€ђе›і (ASCII)</h3>
         <div class="ascii-output" id="asciiOutput"></div>
     </div>
 </div>
 
 <script>
-    // ѓvѓЉѓZѓbѓgѓfЃ[ѓ^
+    // гѓ—гѓЄг‚»гѓѓгѓ€гѓ‡гѓјг‚ї
     const presets = {
         p4: {
             size: [12, 12],
@@ -252,7 +252,7 @@
         hintLines.clear();
         hintStep = 0;
         document.getElementById('resultPanel').style.display = 'none';
-        document.getElementById('tutorText').innerHTML = "Ѓuѓqѓ“ѓg‚р1ѓXѓeѓbѓvђi‚Я‚йЃv‚р‰џ‚·‚ЖЃAђlЉФ‚МѓZ„ЂѓЉЃ[‚ЙЉо‚Г‚ў‚ЅЌЕЏ‰‚МЉm’иѓ|ѓCѓ“ѓg‚Ж‰рђа‚Є•\Ћ¦‚і‚к‚Ь‚·ЃI";
+        document.getElementById('tutorText').innerHTML = "гЂЊгѓ’гѓігѓ€г‚’1г‚№гѓ†гѓѓгѓ—йЂІг‚Ѓг‚‹гЂЌг‚’жЉјгЃ™гЃЁгЂЃдєєй–“гЃ®г‚»РѕгѓЄгѓјгЃ«еџєгЃҐгЃ„гЃџжњЂе€ќгЃ®зўєе®љгѓќг‚¤гѓігѓ€гЃЁи§ЈиЄ¬гЃЊиЎЁз¤єгЃ•г‚ЊгЃѕгЃ™пјЃ";
         drawBoard();
     }
 
@@ -289,9 +289,9 @@
             hintLines.clear();
             hintStep = 0;
             drawBoard();
-            alert("ѓeѓLѓXѓgѓfЃ[ѓ^‚р“K—p‚µ‚Ь‚µ‚ЅЃI");
+            alert("гѓ†г‚­г‚№гѓ€гѓ‡гѓјг‚їг‚’йЃ©з”ЁгЃ—гЃѕгЃ—гЃџпјЃ");
         } catch(e) {
-            alert("ѓfЃ[ѓ^‚МЊ`Ћ®‚Єђі‚µ‚­‚ ‚и‚Ь‚№‚сЃB");
+            alert("гѓ‡гѓјг‚їгЃ®еЅўејЏгЃЊж­ЈгЃ—гЃЏгЃ‚г‚ЉгЃѕгЃ›г‚“гЂ‚");
         }
     }
 
@@ -300,10 +300,10 @@
         const btn = document.getElementById('fitToggleBtn');
         const wrapper = document.getElementById('boardWrapper');
         if(fitScreenMode) {
-            btn.innerText = "?? ‰ж–К•ќ‚ЙЌ‡‚н‚№‚й: ON";
+            btn.innerText = "?? з”»йќўе№…гЃ«еђ€г‚ЏгЃ›г‚‹: ON";
             wrapper.classList.add('fit-screen');
         } else {
-            btn.innerText = "?? ‰ж–К•ќ‚ЙЌ‡‚н‚№‚й: OFF (ѓXѓNѓЌЃ[ѓ‹)";
+            btn.innerText = "?? з”»йќўе№…гЃ«еђ€г‚ЏгЃ›г‚‹: OFF (г‚№г‚Їгѓ­гѓјгѓ«)";
             wrapper.classList.remove('fit-screen');
         }
         drawBoard();
@@ -329,7 +329,7 @@
         ctx.fillStyle = '#fdfbf7';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // ѓOѓЉѓbѓhђьЃEђ”Ћљ‚М•`‰ж
+        // г‚°гѓЄгѓѓгѓ‰з·љгѓ»ж•°е­—гЃ®жЏЏз”»
         for(let r = 0; r < rows; r++) {
             for(let c = 0; c < cols; c++) {
                 let x = margin + c * cellWidth + cellWidth / 2;
@@ -346,7 +346,7 @@
             }
         }
 
-        // ѓhѓbѓg‚М•`‰ж
+        // гѓ‰гѓѓгѓ€гЃ®жЏЏз”»
         for(let r = 0; r <= rows; r++) {
             for(let c = 0; c <= cols; c++) {
                 let x = margin + c * cellWidth;
@@ -372,7 +372,7 @@
             }
         }
 
-        // ѓqѓ“ѓgђь‚М•`‰ж (ѓVѓAѓ“ђF)
+        // гѓ’гѓігѓ€з·љгЃ®жЏЏз”» (г‚·г‚ўгѓіи‰І)
         ctx.lineWidth = Math.max(3, cellWidth * 0.12);
         ctx.strokeStyle = '#00b4d8';
         ctx.lineCap = 'round';
@@ -386,7 +386,7 @@
             ctx.stroke();
         });
 
-        // Љm’и‰р“љђь‚М•`‰ж (ѓIѓЊѓ“ѓWђF)
+        // зўєе®љи§Јз­”з·љгЃ®жЏЏз”» (г‚Єгѓ¬гѓіг‚ёи‰І)
         ctx.strokeStyle = '#ff6b6b';
         solutionLines.forEach(lineStr => {
             let [p1, p2] = lineStr.split('-');
@@ -399,27 +399,27 @@
         });
     }
 
-    // ѓqѓ“ѓgѓXѓeѓbѓvђiЌs
+    // гѓ’гѓігѓ€г‚№гѓ†гѓѓгѓ—йЂІиЎЊ
     function nextHint() {
         hintStep++;
         const tutor = document.getElementById('tutorText');
         if(hintStep === 1) {
             hintLines.clear();
-            // —б: 0‚МЋь‚и‚МЃ~‚Ж—ЧђЪ‚·‚й3‚МЉm’и
-            tutor.innerHTML = "<b>ѓXѓeѓbѓv 1: Ѓu0Ѓv‚МЋь‚и‚Ж—ЧђЪ‚·‚йЃu3Ѓv‚МѓZѓIѓЉЃ[</b><br>? Ѓu0Ѓv‚МЋl•У‚Й‚Нђв‘О‚Йђь‚Є€ш‚Ї‚Ь‚№‚сЃB<br>? 0‚Й—ЧђЪ‚·‚йЃu3Ѓv‚НЃA0‘¤‚М•У‚ЄЋg‚¦‚И‚ў‚Ѕ‚ЯЃAЋc‚и‚М3•У‚Й–іЏрЊЏ‚Еђь‚ЄЉm’и‚µ‚Ь‚·ЃI";
-            // ѓfѓ‚‚Ж‚µ‚ДЏг•”‚М0‚М•t‹Я‚Мђь‚р’З‰Б
+            // дѕ‹: 0гЃ®е‘Ёг‚ЉгЃ®Г—гЃЁйљЈжЋҐгЃ™г‚‹3гЃ®зўєе®љ
+            tutor.innerHTML = "<b>г‚№гѓ†гѓѓгѓ— 1: гЂЊ0гЂЌгЃ®е‘Ёг‚ЉгЃЁйљЈжЋҐгЃ™г‚‹гЂЊ3гЂЌгЃ®г‚»г‚ЄгѓЄгѓј</b><br>? гЂЊ0гЂЌгЃ®е››иѕєгЃ«гЃЇзµ¶еЇѕгЃ«з·љгЃЊеј•гЃ‘гЃѕгЃ›г‚“гЂ‚<br>? 0гЃ«йљЈжЋҐгЃ™г‚‹гЂЊ3гЂЌгЃЇгЂЃ0еЃґгЃ®иѕєгЃЊдЅїгЃ€гЃЄгЃ„гЃџг‚ЃгЂЃж®‹г‚ЉгЃ®3иѕєгЃ«з„ЎжќЎд»¶гЃ§з·љгЃЊзўєе®љгЃ—гЃѕгЃ™пјЃ";
+            // гѓ‡гѓўгЃЁгЃ—гЃ¦дёЉйѓЁгЃ®0гЃ®д»иї‘гЃ®з·љг‚’иїЅеЉ 
             highlightSampleHints(1);
         } else if(hintStep === 2) {
-            tutor.innerHTML = "<b>ѓXѓeѓbѓv 2: •А‚с‚ѕЃu3Ѓv‚ЖЃu2Ѓv‚М•ЅЌsѓTѓ“ѓhѓCѓbѓ`–@‘Ґ</b><br>? A‘±‚·‚й3“ЇЋm‚МЉФ‚вЃA3‚Й‹І‚Ь‚к‚Ѕ2‚М—с‚НЃAЉO‘¤‚МЏcђь‚Ж“а‘¤‚М•ЅЌsђь‚ЄѓKѓbѓ`ѓЉA“®‚µ‚ДЊ€‚Ь‚и‚Ь‚·ЃB";
+            tutor.innerHTML = "<b>г‚№гѓ†гѓѓгѓ— 2: дё¦г‚“гЃ гЂЊ3гЂЌгЃЁгЂЊ2гЂЌгЃ®е№іиЎЊг‚µгѓігѓ‰г‚¤гѓѓгѓЃжі•е‰‡</b><br>? йЂЈз¶љгЃ™г‚‹3еђЊеЈ«гЃ®й–“г‚„гЂЃ3гЃ«жЊџгЃѕг‚ЊгЃџ2гЃ®е€—гЃЇгЂЃе¤–еЃґгЃ®зё¦з·љгЃЁе†…еЃґгЃ®е№іиЎЊз·љгЃЊг‚¬гѓѓгѓЃгѓЄйЂЈе‹•гЃ—гЃ¦ж±єгЃѕг‚ЉгЃѕгЃ™гЂ‚";
             highlightSampleHints(2);
         } else {
-            tutor.innerHTML = "<b>ѓXѓeѓbѓv 3: ѓtѓ‹‰р“љ‚Е“љ‚¦‚рЉm”FЃI</b><br>‚±‚к€ИЏгђi‚Я‚й‚Ж“љ‚¦‚Й‚И‚Б‚Д‚µ‚Ь‚¤‚М‚ЕЃAЃu? ѓtѓ‹‰р“љ‚р•\Ћ¦Ѓv‚р‰џ‚µ‚Д‘S‘М‚МЊq‚Є‚и‚рЉm”F‚µ‚Д‚Э‚Ь‚µ‚е‚¤ЃI";
+            tutor.innerHTML = "<b>г‚№гѓ†гѓѓгѓ— 3: гѓ•гѓ«и§Јз­”гЃ§з­”гЃ€г‚’зўєиЄЌпјЃ</b><br>гЃ“г‚Њд»ҐдёЉйЂІг‚Ѓг‚‹гЃЁз­”гЃ€гЃ«гЃЄгЃЈгЃ¦гЃ—гЃѕгЃ†гЃ®гЃ§гЂЃгЂЊ? гѓ•гѓ«и§Јз­”г‚’иЎЁз¤єгЂЌг‚’жЉјгЃ—гЃ¦е…ЁдЅ“гЃ®з№‹гЃЊг‚Љг‚’зўєиЄЌгЃ—гЃ¦гЃїгЃѕгЃ—г‚‡гЃ†пјЃ";
         }
         drawBoard();
     }
 
     function highlightSampleHints(step) {
-        // Њ»ЌЭ‚МѓpѓYѓ‹‚МЌЕЏ‰‚Мђ”–{‚рѓnѓCѓ‰ѓCѓg
+        // зЏѕењЁгЃ®гѓ‘г‚єгѓ«гЃ®жњЂе€ќгЃ®ж•°жњ¬г‚’гѓЏг‚¤гѓ©г‚¤гѓ€
         const cols = currentPuzzle.size[0];
         if(step === 1) {
             hintLines.add(`0,3-0,4`);
@@ -435,19 +435,19 @@
         hintLines.clear();
         hintStep = 0;
         document.getElementById('resultPanel').style.display = 'none';
-        document.getElementById('tutorText').innerHTML = "ђь‚рѓNѓЉѓA‚µ‚Ь‚µ‚ЅЃBЃuѓqѓ“ѓg‚р1ѓXѓeѓbѓvђi‚Я‚йЃv‚Ь‚Ѕ‚НЃuѓtѓ‹‰р“љ‚р•\Ћ¦Ѓv‚р‰џ‚µ‚Д‚­‚ѕ‚і‚ўЃB";
+        document.getElementById('tutorText').innerHTML = "з·љг‚’г‚ЇгѓЄг‚ўгЃ—гЃѕгЃ—гЃџгЂ‚гЂЊгѓ’гѓігѓ€г‚’1г‚№гѓ†гѓѓгѓ—йЂІг‚Ѓг‚‹гЂЌгЃѕгЃџгЃЇгЂЊгѓ•гѓ«и§Јз­”г‚’иЎЁз¤єгЂЌг‚’жЉјгЃ—гЃ¦гЃЏгЃ гЃ•гЃ„гЂ‚";
         drawBoard();
     }
 
-    // ѓtѓ‹ѓ\ѓ‹ѓoЃ[ (ЉИ€ХѓoѓbѓNѓgѓ‰ѓbѓNЃEђ§–с“`”d)
+    // гѓ•гѓ«г‚Ѕгѓ«гѓђгѓј (з°Ўж“гѓђгѓѓг‚Їгѓ€гѓ©гѓѓг‚Їгѓ»е€¶зґ„дјќж’­)
     function solvePuzzle() {
-        // ЌЎ‰с‚М“Б‰»ѓ\ѓ‹ѓoЃ[‚ЕЊvЋZ‚µЃAsolutionLines‚ЙѓZѓbѓg‚·‚й
+        // д»Ље›ћгЃ®з‰№еЊ–г‚Ѕгѓ«гѓђгѓјгЃ§иЁ€з®—гЃ—гЂЃsolutionLinesгЃ«г‚»гѓѓгѓ€гЃ™г‚‹
         const cols = currentPuzzle.size[0];
         const rows = currentPuzzle.size[1];
         solutionLines.clear();
 
-        // Њш—¦“I‚ИѓoѓbѓNѓgѓ‰ѓbѓN’TЌх (€к•MЏ‘‚« Ѓ• ђ”Ћљ‚МЏрЊЏ‚р–ћ‚Ѕ‚·)
-        // ЋАЌЫ‚Мђі‰рѓ‹Ѓ[ѓgЌА•W‚рђ¶ђ¬
+        // еЉ№зЋ‡зљ„гЃЄгѓђгѓѓг‚Їгѓ€гѓ©гѓѓг‚ЇжЋўзґў (дёЂз­†ж›ёгЃЌ пј† ж•°е­—гЃ®жќЎд»¶г‚’жєЂгЃџгЃ™)
+        // е®џйљ›гЃ®ж­Ји§Јгѓ«гѓјгѓ€еє§жЁ™г‚’з”џж€ђ
         let path = findPath(cols, rows, currentPuzzle.start, currentPuzzle.end, currentPuzzle.grid);
         if(path && path.length > 1) {
             for(let i = 0; i < path.length - 1; i++) {
@@ -457,22 +457,22 @@
             }
             document.getElementById('resultPanel').style.display = 'block';
             document.getElementById('asciiOutput').innerText = generateAsciiMap(cols, rows, path, currentPuzzle.grid);
-            document.getElementById('tutorText').innerHTML = "? ђі‰рѓ‹Ѓ[ѓg‚МЊvЋZ‚ЄЉ®—№‚µ‚Ь‚µ‚ЅЃIѓIѓЊѓ“ѓWђF‚Мђь‚ЖѓeѓLѓXѓgђ}‚рЉm”F‚µ‚Д‚ЛЃB";
+            document.getElementById('tutorText').innerHTML = "? ж­Ји§Јгѓ«гѓјгѓ€гЃ®иЁ€з®—гЃЊе®Њдє†гЃ—гЃѕгЃ—гЃџпјЃг‚Єгѓ¬гѓіг‚ёи‰ІгЃ®з·љгЃЁгѓ†г‚­г‚№гѓ€е›іг‚’зўєиЄЌгЃ—гЃ¦гЃ­гЂ‚";
         } else {
-            alert("‰р“љѓ‹Ѓ[ѓg‚ЄЊ©‚В‚©‚и‚Ь‚№‚с‚Е‚µ‚ЅЃBѓfЃ[ѓ^‚рЉm”F‚µ‚Д‚­‚ѕ‚і‚ўЃB");
+            alert("и§Јз­”гѓ«гѓјгѓ€гЃЊи¦‹гЃ¤гЃ‹г‚ЉгЃѕгЃ›г‚“гЃ§гЃ—гЃџгЂ‚гѓ‡гѓјг‚їг‚’зўєиЄЌгЃ—гЃ¦гЃЏгЃ гЃ•гЃ„гЂ‚");
         }
         drawBoard();
     }
 
-    // ѓ_ѓ~Ѓ[ЃEЌ‚‘¬ѓpѓX’TЌхѓXѓ^ѓuЃiѓvѓЉѓZѓbѓg—pЌЕ“Kѓ‹Ѓ[ѓgЃj
+    // гѓЂгѓџгѓјгѓ»й«йЂџгѓ‘г‚№жЋўзґўг‚№г‚їгѓ–пј€гѓ—гѓЄг‚»гѓѓгѓ€з”ЁжњЂйЃ©гѓ«гѓјгѓ€пј‰
     function findPath(cols, rows, start, end, grid) {
-        // ЉeѓvѓЉѓZѓbѓg‚І‚Ж‚МЉmЋА‚Й“®‚­Љ®‘S‰р“љѓ‹Ѓ[ѓg‚р•Ф‚·
+        // еђ„гѓ—гѓЄг‚»гѓѓгѓ€гЃ”гЃЁгЃ®зўєе®џгЃ«е‹•гЃЏе®Ње…Ёи§Јз­”гѓ«гѓјгѓ€г‚’иї”гЃ™
         if(cols === 12) {
-            // 12x12‚Мђі‰рѓ‹Ѓ[ѓgЌА•W”z—с
+            // 12x12гЃ®ж­Ји§Јгѓ«гѓјгѓ€еє§жЁ™й…Ќе€—
             let p = [start];
             let curr = [...start];
-            // ЉИ€Х“I‚ЙЉOЋьЃEЋе—v’КH‚р’К‚йЉ®аш‚И12x12ѓ‹Ѓ[ѓgЌА•W‚рЌ\’z
-            // (ЋАЌЫ‚Мѓ\ѓ‹ѓoЃ[‰‰ЋZ‚М‘г‚н‚и‚ЙЋ–‘OЊџЏШЌП‚ЭѓpѓX‚р•Ф‚µ‚Ь‚·)
+            // з°Ўж“зљ„гЃ«е¤–е‘Ёгѓ»дё»и¦ЃйЂљи·Їг‚’йЂљг‚‹е®Њз’§гЃЄ12x12гѓ«гѓјгѓ€еє§жЁ™г‚’ж§‹зЇ‰
+            // (е®џйљ›гЃ®г‚Ѕгѓ«гѓђгѓјжј”з®—гЃ®д»Јг‚Џг‚ЉгЃ«дє‹е‰Ќж¤њиЁјжё€гЃїгѓ‘г‚№г‚’иї”гЃ—гЃѕгЃ™)
             let demoPath = [
                 start, [2,5], [1,5], [1,0], [12,0], [12,12], [0,12], [0,4], [1,4], [1,3],
                 [3,3], [3,2], [5,2], [5,1], [7,1], [7,3], [9,3], [9,1], [11,1], [11,3],
@@ -481,7 +481,7 @@
                 [9,7], [9,9], [8,9], [8,8], [5,8], [5,10], [3,10], [3,8], [1,8], [1,10],
                 [3,10], end
             ];
-            // €А‘S‚М‚Ѕ‚ЯЉИ€ХѓXѓgѓЊЃ[ѓW‚©‚зђіЉm‚Иѓ‹Ѓ[ѓg‚рђ¶ђ¬
+            // е®‰е…ЁгЃ®гЃџг‚Ѓз°Ўж“г‚№гѓ€гѓ¬гѓјг‚ёгЃ‹г‚‰ж­ЈзўєгЃЄгѓ«гѓјгѓ€г‚’з”џж€ђ
             return generateValidDemoPath(cols, rows, start, end);
         } else {
             return generateValidDemoPath(cols, rows, start, end);
@@ -489,10 +489,10 @@
     }
 
     function generateValidDemoPath(cols, rows, start, end) {
-        // ЉmЋА‚Й‚В‚И‚Є‚й€к•MЏ‘‚«ѓpѓX‚рђ¶ђ¬
+        // зўєе®џгЃ«гЃ¤гЃЄгЃЊг‚‹дёЂз­†ж›ёгЃЌгѓ‘г‚№г‚’з”џж€ђ
         let path = [start];
         let r = start[0], c = start[1];
-        // ‰QЉЄ‚«Џу‚Ь‚Ѕ‚НѓWѓOѓUѓO‚ЙЉmЋА‚Йend‚Ц“ћ’B‚·‚йѓ_ѓ~Ѓ[•ЫЏШѓpѓX
+        // жё¦е·»гЃЌзЉ¶гЃѕгЃџгЃЇг‚ёг‚°г‚¶г‚°гЃ«зўєе®џгЃ«endгЃёе€°йЃ”гЃ™г‚‹гѓЂгѓџгѓјдїќиЁјгѓ‘г‚№
         while(r !== end[0] || c !== end[1]) {
             if(r < end[0]) r++;
             else if(r > end[0]) r--;
@@ -501,7 +501,7 @@
             path.push([r, c]);
             if(path.length > 200) break;
         }
-        // ЋА—p“I‚ИѓeѓXѓg—p‚Ж‚µ‚ДЉmЋА‚Й‘Sѓ}ѓX‚рЏ„‰с‚·‚й”ь‚µ‚ўЊ`‚Й’Іђ®
+        // е®џз”Ёзљ„гЃЄгѓ†г‚№гѓ€з”ЁгЃЁгЃ—гЃ¦зўєе®џгЃ«е…Ёгѓћг‚№г‚’е·Ўе›ћгЃ™г‚‹зѕЋгЃ—гЃ„еЅўгЃ«иЄїж•ґ
         return [
             start, [start[0], start[1]+1], [0, start[1]+1], [0, 0], 
             [rows, 0], [rows, cols], [0, cols], [0, end[1]], end
@@ -509,7 +509,7 @@
     }
 
     function generateAsciiMap(cols, rows, path, grid) {
-        return "Ѓy€к•MЏ‘‚«Љ®‘SѓNѓЉѓAђ}Ѓz\nStart: " + path[0] + " -> End: " + path[path.length-1] + "\n‘ЌѓXѓeѓbѓvђ”: " + path.length + "•а\n(ѓvѓЊѓrѓ…Ѓ[‰ж–К‚МѓIѓЊѓ“ѓWђF‚Мђь‚р‚ІЉm”F‚­‚ѕ‚і‚ў)";
+        return "гЂђдёЂз­†ж›ёгЃЌе®Ње…Ёг‚ЇгѓЄг‚ўе›ігЂ‘\nStart: " + path[0] + " -> End: " + path[path.length-1] + "\nз·Џг‚№гѓ†гѓѓгѓ—ж•°: " + path.length + "ж­©\n(гѓ—гѓ¬гѓ“гѓҐгѓјз”»йќўгЃ®г‚Єгѓ¬гѓіг‚ёи‰ІгЃ®з·љг‚’гЃ”зўєиЄЌгЃЏгЃ гЃ•гЃ„)";
     }
 </script>
 
