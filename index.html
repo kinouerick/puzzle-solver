@@ -1,517 +1,1056 @@
 ﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>一筆書きパズル・特化型ソルバー＆ヒント家庭教師</title>
-    <style>
-        :root {
-            --bg-color: #1a1a2e;
-            --card-bg: #16213e;
-            --accent-color: #e94560;
-            --text-color: #f1f6f9;
-            --line-color: #ff6b6b;
-            --hint-color: #00f2fe;
-            --dot-color: #4e5d6c;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 12px;
-            box-sizing: border-box;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-        }
-        h2 {
-            margin-top: 0;
-            font-size: 1.2rem;
-            color: #ffdd59;
-            text-align: center;
-        }
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 12px;
-            justify-content: center;
-        }
-        button, select {
-            background: #0f3460;
-            color: white;
-            border: 1px solid #e94560;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: bold;
-        }
-        button:hover { background: #e94560; }
-        button.primary { background: #e94560; }
-        button.hint-btn { background: #00b4d8; border-color: #90e0ef; }
-        button.hint-btn:hover { background: #0077b6; }
-        
-        .board-wrapper {
-            width: 100%;
-            overflow-x: auto;
-            background: #fdfbf7;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 12px;
-            box-sizing: border-box;
-            /* 左端がクリップされないためのマージン自動調整 */
-            display: flex;
-            justify-content: flex-start;
-        }
-        .board-wrapper.fit-screen {
-            justify-content: center;
-        }
-        canvas {
-            display: block;
-            background: #fdfbf7;
-            cursor: pointer;
-            touch-action: none;
-        }
-        .panel {
-            background: #0f3460;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 12px;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-        .panel h3 {
-            margin: 0 0 6px 0;
-            font-size: 1rem;
-            color: #00f2fe;
-        }
-        textarea {
-            width: 100%;
-            height: 90px;
-            background: #1a1a2e;
-            color: #fff;
-            border: 1px solid #4e5d6c;
-            border-radius: 6px;
-            padding: 8px;
-            font-family: monospace;
-            font-size: 0.8rem;
-            box-sizing: border-box;
-            resize: vertical;
-        }
-        .ascii-output {
-            background: #111;
-            color: #55ff55;
-            padding: 10px;
-            border-radius: 6px;
-            font-family: monospace;
-            white-space: pre;
-            overflow-x: auto;
-            font-size: 0.75rem;
-            max-height: 180px;
-        }
-        .flex-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>World Sweeper 一筆書きパズルソルバー</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+    body {
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+      background-color: #111822;
+      color: #e2e8f0;
+    }
+    .mono-diagram {
+      font-family: 'JetBrains Mono', 'MS Gothic', 'Osaka-Mono', monospace;
+      line-height: 1.35;
+      letter-spacing: 0.05em;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 3px;
+    }
+  </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col items-center py-6 px-3 sm:px-6">
 
-<div class="container">
-    <h2>?? 一筆書きパズル・特化型ソルバー＆ヒント家庭教師</h2>
-    
-    <div class="controls">
-        <select id="presetSelect" onchange="loadPreset()">
-            <option value="p4">第4問 (12×12 特大サイズ)</option>
-            <option value="p3">第3問 (8×6 マス)</option>
-            <option value="p2">第2問 (9×6 マス)</option>
-            <option value="p1">第1問 (7×7 マス)</option>
-        </select>
-        <button class="hint-btn" onclick="nextHint()">?? ヒントを1ステップ進める</button>
-        <button class="primary" onclick="solvePuzzle()">? フル解答を表示</button>
-        <button onclick="clearLines()">?? 線をクリア</button>
-        <button id="fitToggleBtn" onclick="toggleFit()">?? 画面幅に合わせる: ON</button>
+  <!-- Header -->
+  <header class="w-full max-w-2xl mb-5 flex items-center justify-between bg-[#1a2432] border border-slate-700/70 rounded-2xl px-4 py-3 shadow-lg">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-rose-600 flex items-center justify-center shadow-md">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-base sm:text-lg font-bold text-white tracking-tight">一筆書きパズル ソルバー</h1>
+        <p class="text-xs text-slate-400">数字と〇の条件を100%満たすルートを自動計算</p>
+      </div>
     </div>
-
-    <!-- 盤面描画エリア -->
-    <div class="board-wrapper fit-screen" id="boardWrapper">
-        <canvas id="puzzleCanvas"></canvas>
+    <div id="statusBadge" class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+      準備完了
     </div>
+  </header>
 
-    <!-- ヒント・解説パネル -->
-    <div class="panel" id="tutorPanel">
-        <h3>?? 解き方ステップ解説</h3>
-        <p id="tutorText">「ヒントを1ステップ進める」を押すと、人間のセоリーに基づいた最初の確定ポイントと解説が表示されます！</p>
-    </div>
+  <!-- Main Container -->
+  <main class="w-full max-w-2xl space-y-5">
 
-    <!-- テキストデータ入出力パネル -->
-    <div class="panel">
-        <div class="flex-row">
-            <strong>?? 盤面テキストデータ (スクショから自動変換用)</strong>
-            <button onclick="applyTextPreset()" style="padding: 4px 8px; font-size: 0.8rem;">テキスト反映</button>
+    <!-- Preset & Solve Action Bar -->
+    <section class="bg-[#1a2432] border border-slate-700/70 rounded-2xl p-4 shadow-lg space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <span class="text-xs font-semibold text-slate-300">  これまでの問題を読み込む：</span>
+        <div class="flex flex-wrap gap-1.5">
+          <button onclick="loadPreset(0)" id="presetBtn0" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-500/20 text-orange-300 border border-orange-500/40 hover:bg-orange-500/30 transition">
+            第3問 (8×6 最新)
+          </button>
+          <button onclick="loadPreset(1)" id="presetBtn1" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700/60 text-slate-300 border border-slate-600 hover:bg-slate-700 transition">
+            第2問 (9×6)
+          </button>
+          <button onclick="loadPreset(2)" id="presetBtn2" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700/60 text-slate-300 border border-slate-600 hover:bg-slate-700 transition">
+            第1問 (7×7)
+          </button>
         </div>
-        <textarea id="dataInput"></textarea>
-    </div>
+      </div>
 
-    <!-- テキスト解答パネル -->
-    <div class="panel" id="resultPanel" style="display:none;">
-        <h3>?? テキスト完成図 (ASCII)</h3>
-        <div class="ascii-output" id="asciiOutput"></div>
-    </div>
-</div>
+      <div class="flex gap-2 pt-1">
+        <button onclick="solveCurrentPuzzle()" id="solveBtn" class="flex-1 py-3 px-4 rounded-xl font-bold text-sm sm:text-base text-white bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-400 hover:to-rose-400 active:scale-[0.99] shadow-lg shadow-orange-500/20 transition flex items-center justify-center gap-2">
+          <span>? パズルを解く（正解を表示）</span>
+        </button>
+        <button onclick="clearSolution()" class="py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-600 transition">
+          線を消す
+        </button>
+      </div>
+    </section>
 
-<script>
-    // プリセットデータ
-    const presets = {
-        p4: {
-            size: [12, 12],
-            start: [2, 4],
-            end: [8, 4],
-            grid: [
-                ".......31...",
-                "3..2.2.22303",
-                "3121.1..2...",
-                "3.3113..3...",
-                "312.12..32.3",
-                "22..1221.1.2",
-                "32..12223333",
-                "1..122.22..1",
-                "2....111...2",
-                "313222232323",
-                "32.2.....2..",
-                "...3..22222."
-            ]
-        },
-        p3: {
-            size: [8, 6],
-            start: [0, 6],
-            end: [1, 1],
-            grid: [
-                ".1......",
-                ".1.33212",
-                ".31....3",
-                ".....3.2",
-                "3120.112",
-                "..33223."
-            ]
-        },
-        p2: {
-            size: [9, 6],
-            start: [5, 1],
-            end: [6, 6],
-            grid: [
-                ".321.233.",
-                ".1....1..",
-                ".3..11.3.",
-                ".1..22.1.",
-                ".33332332",
-                "...0....."
-            ]
-        },
-        p1: {
-            size: [7, 7],
-            start: [1, 5],
-            end: [6, 5],
-            grid: [
-                ".3320..",
-                "1.1.21.",
-                ".21.1..",
-                ".22.3..",
-                "1..11..",
-                "232311.",
-                "...22.."
-            ]
-        }
-    };
+    <!-- Text Output Section (Primary Request!) -->
+    <section id="textOutputSection" class="bg-[#1a2432] border border-slate-700/70 rounded-2xl p-4 shadow-lg">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-bold text-white">  テキスト完成図</span>
+          <span id="solveTimeText" class="text-xs text-emerald-400 font-mono"></span>
+        </div>
+        <button onclick="copyTextDiagram()" id="copyDiagramBtn" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-600 transition">
+          図をコピー
+        </button>
+      </div>
+      <p class="text-xs text-slate-400 mb-3">「パズルを解く」を押すと、ズレのない正確なテキスト図がここに出力されます。</p>
+      <div class="bg-[#0d131c] border border-slate-800 rounded-xl p-4 overflow-x-auto flex justify-center">
+        <pre id="asciiOutput" class="mono-diagram text-xs sm:text-sm text-amber-100 select-all"></pre>
+      </div>
+    </section>
 
-    let currentPuzzle = JSON.parse(JSON.stringify(presets.p4));
-    let cellWidth = 32;
-    let fitScreenMode = true;
-    let hintStep = 0;
-    let solutionLines = new Set(); // "r1,c1-r2,c2"
-    let hintLines = new Set();
+    <!-- Visual Interactive Board -->
+    <section class="bg-[#1a2432] border border-slate-700/70 rounded-2xl p-4 shadow-lg flex flex-col items-center">
+      <div class="w-full flex flex-wrap items-center justify-between gap-2 mb-3">
+        <span class="text-sm font-bold text-white">  盤面プレビュー＆直接編集</span>
+        <span class="text-xs text-slate-400">マスをタップで数字変更 / 点(・)をタップで〇変更</span>
+      </div>
 
+      <!-- World Sweeper Style Board Container -->
+      <div class="w-full overflow-x-auto flex justify-center py-2">
+        <div class="p-2.5 sm:p-3.5 rounded-lg bg-[#c5a667] shadow-inner">
+          <div id="boardWrapper" class="bg-[#dfd8c8] rounded relative select-none">
+            <svg id="puzzleSvg" class="block touch-manipulation"></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step-by-Step Route Guide -->
+      <div id="stepGuideBox" class="w-full mt-4 hidden">
+        <div class="bg-[#121a26] border border-slate-700/80 rounded-xl p-3.5">
+          <h3 class="text-xs font-bold text-orange-300 mb-1.5">  一筆書きルート手順（始点から終点まで）</h3>
+          <p id="stepGuideText" class="text-xs sm:text-sm text-slate-200 leading-relaxed"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Copy-Paste Data Box for Future Daily Puzzles -->
+    <section class="bg-[#1a2432] border border-slate-700/70 rounded-2xl p-4 shadow-lg space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-white">  盤面テキスト入力（今後のデイリー問題用）</h2>
+        <div class="flex items-center gap-1.5 text-xs">
+          <label class="text-slate-400">横:</label>
+          <input type="number" id="inputCols" min="3" max="12" value="8" onchange="resizeGridFromInputs()" class="w-12 bg-slate-800 border border-slate-600 rounded px-1.5 py-0.5 text-center text-white">
+          <label class="text-slate-400 ml-1">縦:</label>
+          <input type="number" id="inputRows" min="3" max="12" value="6" onchange="resizeGridFromInputs()" class="w-12 bg-slate-800 border border-slate-600 rounded px-1.5 py-0.5 text-center text-white">
+        </div>
+      </div>
+      <p class="text-xs text-slate-400 leading-relaxed">
+        今後詰まった時は、スクショをチャットに貼って<strong class="text-slate-200">「この画像のソルバー用テキストを出して」</strong>と聞いてください。出てきたテキストを下に貼り付けて「盤面に反映して解く」を押すだけで一発で解けます！
+      </p>
+      <textarea id="puzzleTextInput" rows="8" class="w-full bg-[#0d131c] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm font-mono text-slate-200 focus:outline-none focus:border-orange-500" placeholder="SIZE 8 6&#10;START 1 1&#10;END 0 7&#10;.1......&#10;.1.33212&#10;..."></textarea>
+      <div class="flex gap-2">
+        <button onclick="applyTextAndSolve()" class="flex-1 py-2.5 px-4 rounded-xl font-semibold text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white transition">
+            テキストを盤面に反映して解く
+        </button>
+        <button onclick="clearBoardAll()" class="py-2.5 px-3 rounded-xl font-semibold text-xs text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-600 transition">
+          白紙にする
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ==========================================
+    // Presets from the user's screenshots
+    // ==========================================
+    const PRESETS = [
+      {
+        name: "第3問 (8×6 最新)",
+        cols: 8,
+        rows: 6,
+        endpoints: [[1, 1], [0, 7]],
+        grid: [
+          ".1......",
+          ".1.33212",
+          ".31....3",
+          ".....3.2",
+          "3120.112",
+          "..33223."
+        ]
+      },
+      {
+        name: "第2問 (9×6)",
+        cols: 9,
+        rows: 6,
+        endpoints: [[5, 1], [6, 6]],
+        grid: [
+          ".321.233.",
+          ".1....1..",
+          ".3..11.3.",
+          ".1..22.1.",
+          ".33332332",
+          "...0....."
+        ]
+      },
+      {
+        name: "第1問 (7×7)",
+        cols: 7,
+        rows: 7,
+        endpoints: [[1, 5], [6, 5]],
+        grid: [
+          ".3320..",
+          "1.1.21.",
+          ".21.1..",
+          ".22.3..",
+          "1..11..",
+          "232311.",
+          "...22.."
+        ]
+      }
+    ];
+
+    // Current board state
+    let cols = 8;
+    let rows = 6;
+    let clues = []; // rows x cols: null or 0..3
+    let endpoints = []; // array of [r, c] vertex coords (max 2)
+    let solvedEdges = null; // { h: bool[][], v: bool[][] }
+    let solvedPath = null;  // array of [r, c] vertices in order
+
+    // Initialize with Preset 0 and solve immediately
     window.onload = function() {
-        loadPreset();
+      loadPreset(0);
     };
 
-    function loadPreset() {
-        const key = document.getElementById('presetSelect').value;
-        currentPuzzle = JSON.parse(JSON.stringify(presets[key]));
-        document.getElementById('dataInput').value = serializeGrid(currentPuzzle);
-        solutionLines.clear();
-        hintLines.clear();
-        hintStep = 0;
-        document.getElementById('resultPanel').style.display = 'none';
-        document.getElementById('tutorText').innerHTML = "「ヒントを1ステップ進める」を押すと、人間のセоリーに基づいた最初の確定ポイントと解説が表示されます！";
-        drawBoard();
+    function updateStatus(text, type = "info") {
+      const badge = document.getElementById("statusBadge");
+      badge.textContent = text;
+      badge.className = "px-3 py-1 rounded-full text-xs font-semibold border ";
+      if (type === "ok") {
+        badge.className += "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+      } else if (type === "err") {
+        badge.className += "bg-rose-500/20 text-rose-300 border-rose-500/30";
+      } else {
+        badge.className += "bg-amber-500/20 text-amber-300 border-amber-500/30";
+      }
     }
 
-    function serializeGrid(p) {
-        let txt = `SIZE: ${p.size[0]} ${p.size[1]}\n`;
-        txt += `START: ${p.start[0]} ${p.start[1]}\n`;
-        txt += `END: ${p.end[0]} ${p.end[1]}\n`;
-        txt += p.grid.join('\n');
-        return txt;
+    function loadPreset(idx) {
+      const p = PRESETS[idx];
+      cols = p.cols;
+      rows = p.rows;
+      document.getElementById("inputCols").value = cols;
+      document.getElementById("inputRows").value = rows;
+
+      clues = [];
+      for (let r = 0; r < rows; r++) {
+        const rowArr = [];
+        for (let c = 0; c < cols; c++) {
+          const ch = p.grid[r][c];
+          rowArr.push(ch >= '0' && ch <= '3' ? parseInt(ch, 10) : null);
+        }
+        clues.push(rowArr);
+      }
+      endpoints = p.endpoints.map(pt => [pt[0], pt[1]]);
+      solvedEdges = null;
+      solvedPath = null;
+
+      // Highlight active preset button
+      for (let i = 0; i < 3; i++) {
+        const btn = document.getElementById("presetBtn" + i);
+        if (i === idx) {
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-500/20 text-orange-300 border border-orange-500/40 transition";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700/60 text-slate-300 border border-slate-600 hover:bg-slate-700 transition";
+        }
+      }
+
+      syncStateToTextarea();
+      renderBoard();
+      solveCurrentPuzzle();
     }
 
-    function applyTextPreset() {
-        const val = document.getElementById('dataInput').value;
-        try {
-            const lines = val.split('\n').map(l => l.trim()).filter(l => l);
-            let size = [12, 12], start = [0,0], end = [1,1];
-            let gridRows = [];
-            for(let l of lines) {
-                if(l.startsWith('SIZE:')) {
-                    let parts = l.split(/\s+/);
-                    size = [parseInt(parts[1]), parseInt(parts[2])];
-                } else if(l.startsWith('START:')) {
-                    let parts = l.split(/\s+/);
-                    start = [parseInt(parts[1]), parseInt(parts[2])];
-                } else if(l.startsWith('END:')) {
-                    let parts = l.split(/\s+/);
-                    end = [parseInt(parts[1]), parseInt(parts[2])];
-                } else if(!l.includes(':')) {
-                    gridRows.push(l);
+    function syncStateToTextarea() {
+      let lines = [];
+      lines.push(`SIZE ${cols} ${rows}`);
+      if (endpoints.length >= 1) lines.push(`START ${endpoints[0][0]} ${endpoints[0][1]}`);
+      if (endpoints.length >= 2) lines.push(`END ${endpoints[1][0]} ${endpoints[1][1]}`);
+      for (let r = 0; r < rows; r++) {
+        let s = "";
+        for (let c = 0; c < cols; c++) {
+          s += clues[r][c] === null ? "." : clues[r][c].toString();
+        }
+        lines.push(s);
+      }
+      document.getElementById("puzzleTextInput").value = lines.join("\n");
+    }
+
+    function applyTextAndSolve() {
+      const raw = document.getElementById("puzzleTextInput").value.trim();
+      if (!raw) return;
+
+      const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+      let newCols = cols;
+      let newRows = rows;
+      let newEndpoints = [];
+      let gridLines = [];
+
+      for (const line of lines) {
+        const upper = line.toUpperCase();
+        if (upper.startsWith("SIZE")) {
+          const parts = line.split(/\s+/);
+          if (parts.length >= 3) {
+            newCols = parseInt(parts[1], 10);
+            newRows = parseInt(parts[2], 10);
+          }
+        } else if (upper.startsWith("START") || upper.startsWith("END") || upper.startsWith("POINT")) {
+          const parts = line.split(/\s+/);
+          if (parts.length >= 3) {
+            newEndpoints.push([parseInt(parts[1], 10), parseInt(parts[2], 10)]);
+          }
+        } else {
+          gridLines.push(line.replace(/\s+/g, ""));
+        }
+      }
+
+      if (gridLines.length > 0) {
+        newRows = gridLines.length;
+        newCols = gridLines[0].length;
+      }
+
+      if (isNaN(newCols) || isNaN(newRows) || newCols < 2 || newRows < 2 || newCols > 14 || newRows > 14) {
+        updateStatus("サイズエラー", "err");
+        return;
+      }
+
+      cols = newCols;
+      rows = newRows;
+      document.getElementById("inputCols").value = cols;
+      document.getElementById("inputRows").value = rows;
+
+      clues = [];
+      for (let r = 0; r < rows; r++) {
+        const rowArr = [];
+        const lineStr = gridLines[r] || "";
+        for (let c = 0; c < cols; c++) {
+          const ch = lineStr[c] || ".";
+          rowArr.push(ch >= '0' && ch <= '3' ? parseInt(ch, 10) : null);
+        }
+        clues.push(rowArr);
+      }
+
+      if (newEndpoints.length === 2) {
+        endpoints = newEndpoints;
+      }
+      solvedEdges = null;
+      solvedPath = null;
+      renderBoard();
+      solveCurrentPuzzle();
+    }
+
+    function resizeGridFromInputs() {
+      const nc = parseInt(document.getElementById("inputCols").value, 10);
+      const nr = parseInt(document.getElementById("inputRows").value, 10);
+      if (isNaN(nc) || isNaN(nr) || nc < 2 || nr < 2 || nc > 14 || nr > 14) return;
+
+      const newClues = [];
+      for (let r = 0; r < nr; r++) {
+        const rowArr = [];
+        for (let c = 0; c < nc; c++) {
+          rowArr.push(r < rows && c < cols ? clues[r][c] : null);
+        }
+        newClues.push(rowArr);
+      }
+      cols = nc;
+      rows = nr;
+      clues = newClues;
+      endpoints = endpoints.filter(pt => pt[0] <= rows && pt[1] <= cols);
+      solvedEdges = null;
+      solvedPath = null;
+      syncStateToTextarea();
+      renderBoard();
+      renderAsciiDiagram();
+    }
+
+    function clearSolution() {
+      solvedEdges = null;
+      solvedPath = null;
+      document.getElementById("solveTimeText").textContent = "";
+      document.getElementById("stepGuideBox").classList.add("hidden");
+      updateStatus("未解決", "info");
+      renderBoard();
+      renderAsciiDiagram();
+    }
+
+    function clearBoardAll() {
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          clues[r][c] = null;
+        }
+      }
+      endpoints = [];
+      clearSolution();
+      syncStateToTextarea();
+    }
+
+    // ==========================================
+    // Interactive SVG Board Rendering
+    // ==========================================
+    function renderBoard() {
+      const svg = document.getElementById("puzzleSvg");
+      const cellSize = 44;
+      const pad = 26;
+      const width = cols * cellSize + pad * 2;
+      const height = rows * cellSize + pad * 2;
+
+      svg.setAttribute("width", width);
+      svg.setAttribute("height", height);
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.innerHTML = "";
+
+      // 1. Cell clickable regions and numbers
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = pad + c * cellSize;
+          const y = pad + r * cellSize;
+
+          const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          rect.setAttribute("x", x + 4);
+          rect.setAttribute("y", y + 4);
+          rect.setAttribute("width", cellSize - 8);
+          rect.setAttribute("height", cellSize - 8);
+          rect.setAttribute("rx", 6);
+          rect.setAttribute("fill", "transparent");
+          rect.setAttribute("class", "cursor-pointer hover:fill-black/5 transition");
+          rect.onclick = () => {
+            const cur = clues[r][c];
+            if (cur === null) clues[r][c] = 0;
+            else if (cur < 3) clues[r][c] = cur + 1;
+            else clues[r][c] = null;
+            solvedEdges = null;
+            solvedPath = null;
+            syncStateToTextarea();
+            renderBoard();
+            renderAsciiDiagram();
+          };
+          svg.appendChild(rect);
+
+          if (clues[r][c] !== null) {
+            const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            txt.setAttribute("x", x + cellSize / 2);
+            txt.setAttribute("y", y + cellSize / 2 + 7);
+            txt.setAttribute("text-anchor", "middle");
+            txt.setAttribute("font-size", "21");
+            txt.setAttribute("font-weight", "700");
+            txt.setAttribute("fill", clues[r][c] === 0 ? "#8c8c8c" : "#2d3748");
+            txt.setAttribute("class", "pointer-events-none select-none");
+            txt.textContent = clues[r][c];
+            svg.appendChild(txt);
+          }
+        }
+      }
+
+      // 2. Solved Path Lines (if solved)
+      if (solvedEdges) {
+        // Horizontal edges
+        for (let r = 0; r <= rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (solvedEdges.h[r][c]) {
+              const x1 = pad + c * cellSize;
+              const y1 = pad + r * cellSize;
+              const x2 = pad + (c + 1) * cellSize;
+              drawLineSegment(svg, x1, y1, x2, y1);
+            }
+          }
+        }
+        // Vertical edges
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c <= cols; c++) {
+            if (solvedEdges.v[r][c]) {
+              const x1 = pad + c * cellSize;
+              const y1 = pad + r * cellSize;
+              const y2 = pad + (r + 1) * cellSize;
+              drawLineSegment(svg, x1, y1, x1, y2);
+            }
+          }
+        }
+      }
+
+      // 3. Grid Vertices (dots and red/orange endpoint rings)
+      for (let r = 0; r <= rows; r++) {
+        for (let c = 0; c <= cols; c++) {
+          const cx = pad + c * cellSize;
+          const cy = pad + r * cellSize;
+          const isEp = endpoints.some(pt => pt[0] === r && pt[1] === c);
+
+          // Invisible hit target for vertex click
+          const hit = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          hit.setAttribute("cx", cx);
+          hit.setAttribute("cy", cy);
+          hit.setAttribute("r", 12);
+          hit.setAttribute("fill", "transparent");
+          hit.setAttribute("class", "cursor-pointer");
+          hit.onclick = () => {
+            const idx = endpoints.findIndex(pt => pt[0] === r && pt[1] === c);
+            if (idx >= 0) {
+              endpoints.splice(idx, 1);
+            } else {
+              if (endpoints.length >= 2) endpoints.shift();
+              endpoints.push([r, c]);
+            }
+            solvedEdges = null;
+            solvedPath = null;
+            syncStateToTextarea();
+            renderBoard();
+            renderAsciiDiagram();
+          };
+          svg.appendChild(hit);
+
+          if (isEp) {
+            const epCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            epCircle.setAttribute("cx", cx);
+            epCircle.setAttribute("cy", cy);
+            epCircle.setAttribute("r", 6.5);
+            epCircle.setAttribute("fill", "#fff5eb");
+            epCircle.setAttribute("stroke", "#ea580c");
+            epCircle.setAttribute("stroke-width", "3.8");
+            epCircle.setAttribute("class", "pointer-events-none");
+            svg.appendChild(epCircle);
+          } else {
+            const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            dot.setAttribute("cx", cx);
+            dot.setAttribute("cy", cy);
+            dot.setAttribute("r", 2.6);
+            dot.setAttribute("fill", "#334155");
+            dot.setAttribute("class", "pointer-events-none");
+            svg.appendChild(dot);
+          }
+        }
+      }
+    }
+
+    function drawLineSegment(svg, x1, y1, x2, y2) {
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", x1);
+      line.setAttribute("y1", y1);
+      line.setAttribute("x2", x2);
+      line.setAttribute("y2", y2);
+      line.setAttribute("stroke", "#ea580c");
+      line.setAttribute("stroke-width", "5.5");
+      line.setAttribute("stroke-linecap", "round");
+      line.setAttribute("class", "pointer-events-none");
+      svg.appendChild(line);
+    }
+
+    // ==========================================
+    // Text Diagram (ASCII / Full-width) Generator
+    // ==========================================
+    function renderAsciiDiagram() {
+      const fullWidthDigits = ["０", "１", "２", "３"];
+      let outLines = [];
+
+      for (let r = 0; r <= rows; r++) {
+        // Vertex + Horizontal edge row
+        let vLine = "";
+        for (let c = 0; c <= cols; c++) {
+          const isEp = endpoints.some(pt => pt[0] === r && pt[1] === c);
+          vLine += isEp ? "〇" : "・";
+          if (c < cols) {
+            const hasH = solvedEdges && solvedEdges.h[r][c];
+            vLine += hasH ? "━" : "　";
+          }
+        }
+        outLines.push(vLine);
+
+        // Vertical edge + Cell clue row
+        if (r < rows) {
+          let cLine = "";
+          for (let c = 0; c <= cols; c++) {
+            const hasV = solvedEdges && solvedEdges.v[r][c];
+            cLine += hasV ? "┃" : "　";
+            if (c < cols) {
+              const cl = clues[r][c];
+              cLine += cl !== null ? fullWidthDigits[cl] : "　";
+            }
+          }
+          outLines.push(cLine);
+        }
+      }
+
+      document.getElementById("asciiOutput").textContent = outLines.join("\n");
+    }
+
+    function copyTextDiagram() {
+      const text = document.getElementById("asciiOutput").textContent;
+      const temp = document.createElement("textarea");
+      temp.value = text;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand("copy");
+      document.body.removeChild(temp);
+
+      const btn = document.getElementById("copyDiagramBtn");
+      const orig = btn.textContent;
+      btn.textContent = "? コピー完了！";
+      setTimeout(() => { btn.textContent = orig; }, 1600);
+    }
+
+    // ==========================================
+    // Exact Constraint Propagation + Backtracking Solver
+    // ==========================================
+    function solveCurrentPuzzle() {
+      if (endpoints.length !== 2) {
+        updateStatus("〇を2つ配置してください", "err");
+        renderAsciiDiagram();
+        return;
+      }
+
+      const t0 = performance.now();
+      const result = runExactSlitherlinkPathSolver(rows, cols, clues, endpoints[0], endpoints[1]);
+      const t1 = performance.now();
+
+      if (result) {
+        solvedEdges = result.edges;
+        solvedPath = result.path;
+        const ms = (t1 - t0).toFixed(1);
+        document.getElementById("solveTimeText").textContent = `(${ms}ミリ秒で計算完了)`;
+        updateStatus("? 解決完了！", "ok");
+        renderBoard();
+        renderAsciiDiagram();
+        renderStepByStepGuide(solvedPath);
+      } else {
+        solvedEdges = null;
+        solvedPath = null;
+        document.getElementById("solveTimeText").textContent = "";
+        document.getElementById("stepGuideBox").classList.add("hidden");
+        updateStatus("解が見つかりません（数字や〇の位置を確認してください）", "err");
+        renderBoard();
+        renderAsciiDiagram();
+      }
+    }
+
+    function renderStepByStepGuide(path) {
+      if (!path || path.length < 2) return;
+      const box = document.getElementById("stepGuideBox");
+      const txt = document.getElementById("stepGuideText");
+      box.classList.remove("hidden");
+
+      // Compress consecutive moves in the same direction
+      let moves = [];
+      for (let i = 0; i < path.length - 1; i++) {
+        const dr = path[i + 1][0] - path[i][0];
+        const dc = path[i + 1][1] - path[i][1];
+        let dir = "";
+        if (dr === -1) dir = "上";
+        else if (dr === 1) dir = "下";
+        else if (dc === -1) dir = "左";
+        else if (dc === 1) dir = "右";
+
+        if (moves.length > 0 && moves[moves.length - 1].dir === dir) {
+          moves[moves.length - 1].count++;
+        } else {
+          moves.push({ dir, count: 1 });
+        }
+      }
+
+      const startPt = path[0];
+      const parts = moves.map(m => `<strong>${m.dir}に${m.count}</strong>`);
+      txt.innerHTML = `始点〇(縦${startPt[0]}, 横${startPt[1]}) からスタート：<br>` + parts.join(" → ") + " でゴール〇に到着！";
+    }
+
+    /**
+     * Exact Solver using Edge Constraint Propagation + DSU Loop/Path Validation
+     * Finds a single non-branching path between startV and endV satisfying all cell clues.
+     */
+    function runExactSlitherlinkPathSolver(R, C, cellClues, startV, endV) {
+      // Index all edges:
+      // Horizontal edges: r in [0..R], c in [0..C-1] -> id = r * C + c (total (R+1)*C)
+      // Vertical edges: r in [0..R-1], c in [0..C] -> id = numH + r * (C+1) + c (total R*(C+1))
+      const numH = (R + 1) * C;
+      const numV = R * (C + 1);
+      const numEdges = numH + numV;
+      const numVerts = (R + 1) * (C + 1);
+
+      const edgeVerts = new Array(numEdges);
+      const edgeCells = new Array(numEdges);
+      const vertEdges = Array.from({ length: numVerts }, () => []);
+      const cellEdges = Array.from({ length: R * C }, () => []);
+
+      const vId = (r, c) => r * (C + 1) + c;
+      const cId = (r, c) => r * C + c;
+
+      // Setup horizontal edges
+      for (let r = 0; r <= R; r++) {
+        for (let c = 0; c < C; c++) {
+          const eid = r * C + c;
+          const u = vId(r, c);
+          const v = vId(r, c + 1);
+          edgeVerts[eid] = [u, v];
+          vertEdges[u].push(eid);
+          vertEdges[v].push(eid);
+
+          const cells = [];
+          if (r > 0) {
+            const cid = cId(r - 1, c);
+            cells.push(cid);
+            cellEdges[cid].push(eid);
+          }
+          if (r < R) {
+            const cid = cId(r, c);
+            cells.push(cid);
+            cellEdges[cid].push(eid);
+          }
+          edgeCells[eid] = cells;
+        }
+      }
+
+      // Setup vertical edges
+      for (let r = 0; r < R; r++) {
+        for (let c = 0; c <= C; c++) {
+          const eid = numH + r * (C + 1) + c;
+          const u = vId(r, c);
+          const v = vId(r + 1, c);
+          edgeVerts[eid] = [u, v];
+          vertEdges[u].push(eid);
+          vertEdges[v].push(eid);
+
+          const cells = [];
+          if (c > 0) {
+            const cid = cId(r, c - 1);
+            cells.push(cid);
+            cellEdges[cid].push(eid);
+          }
+          if (c < C) {
+            const cid = cId(r, c);
+            cells.push(cid);
+            cellEdges[cid].push(eid);
+          }
+          edgeCells[eid] = cells;
+        }
+      }
+
+      const flatClues = new Int8Array(R * C);
+      for (let r = 0; r < R; r++) {
+        for (let c = 0; c < C; c++) {
+          flatClues[cId(r, c)] = cellClues[r][c] === null ? -1 : cellClues[r][c];
+        }
+      }
+
+      const isEndpoint = new Uint8Array(numVerts);
+      const startId = vId(startV[0], startV[1]);
+      const endId = vId(endV[0], endV[1]);
+      isEndpoint[startId] = 1;
+      isEndpoint[endId] = 1;
+
+      // Edge states: -1 = undecided, 0 = off, 1 = on
+      const initialState = new Int8Array(numEdges).fill(-1);
+
+      function propagateAndCheck(state) {
+        let queue = [];
+        // Initial sweep
+        for (let cid = 0; cid < R * C; cid++) queue.push({ type: 'cell', id: cid });
+        for (let vid = 0; vid < numVerts; vid++) queue.push({ type: 'vert', id: vid });
+
+        let head = 0;
+        while (head < queue.length) {
+          const item = queue[head++];
+
+          if (item.type === 'cell') {
+            const cid = item.id;
+            const clue = flatClues[cid];
+            if (clue === -1) continue;
+
+            const edges = cellEdges[cid];
+            let onCount = 0;
+            let undecCount = 0;
+            for (let i = 0; i < 4; i++) {
+              const s = state[edges[i]];
+              if (s === 1) onCount++;
+              else if (s === -1) undecCount++;
+            }
+
+            if (onCount > clue || onCount + undecCount < clue) return false;
+
+            if (undecCount > 0) {
+              if (onCount === clue) {
+                for (let i = 0; i < 4; i++) {
+                  const eid = edges[i];
+                  if (state[eid] === -1) {
+                    state[eid] = 0;
+                    enqueueNeighbors(eid, queue);
+                  }
                 }
-            }
-            currentPuzzle = { size, start, end, grid: gridRows };
-            solutionLines.clear();
-            hintLines.clear();
-            hintStep = 0;
-            drawBoard();
-            alert("テキストデータを適用しました！");
-        } catch(e) {
-            alert("データの形式が正しくありません。");
-        }
-    }
-
-    function toggleFit() {
-        fitScreenMode = !fitScreenMode;
-        const btn = document.getElementById('fitToggleBtn');
-        const wrapper = document.getElementById('boardWrapper');
-        if(fitScreenMode) {
-            btn.innerText = "?? 画面幅に合わせる: ON";
-            wrapper.classList.add('fit-screen');
-        } else {
-            btn.innerText = "?? 画面幅に合わせる: OFF (スクロール)";
-            wrapper.classList.remove('fit-screen');
-        }
-        drawBoard();
-    }
-
-    function drawBoard() {
-        const canvas = document.getElementById('puzzleCanvas');
-        const cols = currentPuzzle.size[0];
-        const rows = currentPuzzle.size[1];
-        
-        const wrapperWidth = document.getElementById('boardWrapper').clientWidth - 20;
-        if(fitScreenMode) {
-            cellWidth = Math.max(20, Math.min(36, Math.floor(wrapperWidth / (cols + 1))));
-        } else {
-            cellWidth = 34;
-        }
-
-        const margin = 28;
-        canvas.width = cols * cellWidth + margin * 2;
-        canvas.height = rows * cellWidth + margin * 2;
-        const ctx = canvas.getContext('2d');
-
-        ctx.fillStyle = '#fdfbf7';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // グリッド線・数字の描画
-        for(let r = 0; r < rows; r++) {
-            for(let c = 0; c < cols; c++) {
-                let x = margin + c * cellWidth + cellWidth / 2;
-                let y = margin + r * cellWidth + cellWidth / 2;
-                let char = currentPuzzle.grid[r][c];
-
-                if(char !== '.' && char !== ' ') {
-                    ctx.fillStyle = char === '0' ? '#888' : '#222';
-                    ctx.font = `bold ${Math.floor(cellWidth * 0.45)}px sans-serif`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(char, x, y);
+              } else if (onCount + undecCount === clue) {
+                for (let i = 0; i < 4; i++) {
+                  const eid = edges[i];
+                  if (state[eid] === -1) {
+                    state[eid] = 1;
+                    enqueueNeighbors(eid, queue);
+                  }
                 }
+              }
             }
-        }
+          } else {
+            const vid = item.id;
+            const edges = vertEdges[vid];
+            let onCount = 0;
+            let undecCount = 0;
+            for (let i = 0; i < edges.length; i++) {
+              const s = state[edges[i]];
+              if (s === 1) onCount++;
+              else if (s === -1) undecCount++;
+            }
 
-        // ドットの描画
-        for(let r = 0; r <= rows; r++) {
-            for(let c = 0; c <= cols; c++) {
-                let x = margin + c * cellWidth;
-                let y = margin + r * cellWidth;
-                
-                let isStart = (currentPuzzle.start[0] === r && currentPuzzle.start[1] === c);
-                let isEnd = (currentPuzzle.end[0] === r && currentPuzzle.end[1] === c);
-
-                if(isStart || isEnd) {
-                    ctx.beginPath();
-                    ctx.arc(x, y, cellWidth * 0.28, 0, Math.PI * 2);
-                    ctx.fillStyle = '#ff4757';
-                    ctx.fill();
-                    ctx.lineWidth = 2;
-                    ctx.strokeStyle = '#fff';
-                    ctx.stroke();
-                } else {
-                    ctx.beginPath();
-                    ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-                    ctx.fillStyle = '#4e5d6c';
-                    ctx.fill();
+            if (isEndpoint[vid]) {
+              // Degree must be exactly 1
+              if (onCount > 1 || onCount + undecCount < 1) return false;
+              if (undecCount > 0) {
+                if (onCount === 1) {
+                  for (let i = 0; i < edges.length; i++) {
+                    const eid = edges[i];
+                    if (state[eid] === -1) {
+                      state[eid] = 0;
+                      enqueueNeighbors(eid, queue);
+                    }
+                  }
+                } else if (onCount === 0 && undecCount === 1) {
+                  for (let i = 0; i < edges.length; i++) {
+                    const eid = edges[i];
+                    if (state[eid] === -1) {
+                      state[eid] = 1;
+                      enqueueNeighbors(eid, queue);
+                    }
+                  }
                 }
+              }
+            } else {
+              // Non-endpoint vertex: degree must be 0 or 2
+              if (onCount > 2) return false;
+              if (onCount === 1 && undecCount === 0) return false;
+
+              if (undecCount > 0) {
+                if (onCount === 2) {
+                  for (let i = 0; i < edges.length; i++) {
+                    const eid = edges[i];
+                    if (state[eid] === -1) {
+                      state[eid] = 0;
+                      enqueueNeighbors(eid, queue);
+                    }
+                  }
+                } else if (onCount === 1 && undecCount === 1) {
+                  for (let i = 0; i < edges.length; i++) {
+                    const eid = edges[i];
+                    if (state[eid] === -1) {
+                      state[eid] = 1;
+                      enqueueNeighbors(eid, queue);
+                    }
+                  }
+                } else if (onCount === 0 && undecCount === 1) {
+                  // Cannot have degree 1, so single remaining edge must be 0
+                  for (let i = 0; i < edges.length; i++) {
+                    const eid = edges[i];
+                    if (state[eid] === -1) {
+                      state[eid] = 0;
+                      enqueueNeighbors(eid, queue);
+                    }
+                  }
+                }
+              }
             }
+          }
         }
 
-        // ヒント線の描画 (シアン色)
-        ctx.lineWidth = Math.max(3, cellWidth * 0.12);
-        ctx.strokeStyle = '#00b4d8';
-        ctx.lineCap = 'round';
-        hintLines.forEach(lineStr => {
-            let [p1, p2] = lineStr.split('-');
-            let [r1, c1] = p1.split(',').map(Number);
-            let [r2, c2] = p2.split(',').map(Number);
-            ctx.beginPath();
-            ctx.moveTo(margin + c1 * cellWidth, margin + r1 * cellWidth);
-            ctx.lineTo(margin + c2 * cellWidth, margin + r2 * cellWidth);
-            ctx.stroke();
-        });
+        // Check for closed loops or premature start-end connection using Disjoint Set
+        const parent = new Int16Array(numVerts);
+        const deg = new Uint8Array(numVerts);
+        for (let i = 0; i < numVerts; i++) parent[i] = i;
 
-        // 確定解答線の描画 (オレンジ色)
-        ctx.strokeStyle = '#ff6b6b';
-        solutionLines.forEach(lineStr => {
-            let [p1, p2] = lineStr.split('-');
-            let [r1, c1] = p1.split(',').map(Number);
-            let [r2, c2] = p2.split(',').map(Number);
-            ctx.beginPath();
-            ctx.moveTo(margin + c1 * cellWidth, margin + r1 * cellWidth);
-            ctx.lineTo(margin + c2 * cellWidth, margin + r2 * cellWidth);
-            ctx.stroke();
-        });
-    }
-
-    // ヒントステップ進行
-    function nextHint() {
-        hintStep++;
-        const tutor = document.getElementById('tutorText');
-        if(hintStep === 1) {
-            hintLines.clear();
-            // 例: 0の周りの×と隣接する3の確定
-            tutor.innerHTML = "<b>ステップ 1: 「0」の周りと隣接する「3」のセオリー</b><br>? 「0」の四辺には絶対に線が引けません。<br>? 0に隣接する「3」は、0側の辺が使えないため、残りの3辺に無条件で線が確定します！";
-            // デモとして上部の0の付近の線を追加
-            highlightSampleHints(1);
-        } else if(hintStep === 2) {
-            tutor.innerHTML = "<b>ステップ 2: 並んだ「3」と「2」の平行サンドイッチ法則</b><br>? 連続する3同士の間や、3に挟まれた2の列は、外側の縦線と内側の平行線がガッチリ連動して決まります。";
-            highlightSampleHints(2);
-        } else {
-            tutor.innerHTML = "<b>ステップ 3: フル解答で答えを確認！</b><br>これ以上進めると答えになってしまうので、「? フル解答を表示」を押して全体の繋がりを確認してみましょう！";
+        function find(x) {
+          while (parent[x] !== x) {
+            parent[x] = parent[parent[x]];
+            x = parent[x];
+          }
+          return x;
         }
-        drawBoard();
-    }
 
-    function highlightSampleHints(step) {
-        // 現在のパズルの最初の数本をハイライト
-        const cols = currentPuzzle.size[0];
-        if(step === 1) {
-            hintLines.add(`0,3-0,4`);
-            hintLines.add(`0,4-1,4`);
-        } else {
-            hintLines.add(`1,1-2,1`);
-            hintLines.add(`2,1-3,1`);
+        let totalOn = 0;
+        let totalUndec = 0;
+        for (let eid = 0; eid < numEdges; eid++) {
+          const s = state[eid];
+          if (s === -1) {
+            totalUndec++;
+          } else if (s === 1) {
+            totalOn++;
+            const [u, v] = edgeVerts[eid];
+            deg[u]++;
+            deg[v]++;
+            const ru = find(u);
+            const rv = find(v);
+            // Closed cycle is strictly forbidden in this puzzle!
+            if (ru === rv) return false;
+            parent[ru] = rv;
+          }
         }
-    }
 
-    function clearLines() {
-        solutionLines.clear();
-        hintLines.clear();
-        hintStep = 0;
-        document.getElementById('resultPanel').style.display = 'none';
-        document.getElementById('tutorText').innerHTML = "線をクリアしました。「ヒントを1ステップ進める」または「フル解答を表示」を押してください。";
-        drawBoard();
-    }
-
-    // フルソルバー (簡易バックトラック・制約伝播)
-    function solvePuzzle() {
-        // 今回の特化ソルバーで計算し、solutionLinesにセットする
-        const cols = currentPuzzle.size[0];
-        const rows = currentPuzzle.size[1];
-        solutionLines.clear();
-
-        // 効率的なバックトラック探索 (一筆書き ＆ 数字の条件を満たす)
-        // 実際の正解ルート座標を生成
-        let path = findPath(cols, rows, currentPuzzle.start, currentPuzzle.end, currentPuzzle.grid);
-        if(path && path.length > 1) {
-            for(let i = 0; i < path.length - 1; i++) {
-                let r1 = path[i][0], c1 = path[i][1];
-                let r2 = path[i+1][0], c2 = path[i+1][1];
-                solutionLines.add(`${r1},${c1}-${r2},${c2}`);
+        // Check if startId and endId are already connected into a finished segment
+        if (find(startId) === find(endId)) {
+          // Check if the path between startId and endId has no undecided open ends
+          // In a valid graph with max degree 2 and no cycles, startId and endId being in the same
+          // component means the path connecting them is completely closed at both ends!
+          // Thus no other '1' edges can exist outside this path, and all cell clues must be satisfied.
+          for (let cid = 0; cid < R * C; cid++) {
+            const clue = flatClues[cid];
+            if (clue !== -1) {
+              let cOn = 0;
+              const edges = cellEdges[cid];
+              for (let i = 0; i < 4; i++) if (state[edges[i]] === 1) cOn++;
+              if (cOn !== clue) return false;
             }
-            document.getElementById('resultPanel').style.display = 'block';
-            document.getElementById('asciiOutput').innerText = generateAsciiMap(cols, rows, path, currentPuzzle.grid);
-            document.getElementById('tutorText').innerHTML = "? 正解ルートの計算が完了しました！オレンジ色の線とテキスト図を確認してね。";
-        } else {
-            alert("解答ルートが見つかりませんでした。データを確認してください。");
+          }
+          // Also any vertex not in the start-end component cannot have any '1' edges
+          const mainRoot = find(startId);
+          for (let eid = 0; eid < numEdges; eid++) {
+            if (state[eid] === 1) {
+              if (find(edgeVerts[eid][0]) !== mainRoot) return false;
+            } else if (state[eid] === -1) {
+              state[eid] = 0;
+            }
+          }
         }
-        drawBoard();
-    }
 
-    // ダミー・高速パス探索スタブ（プリセット用最適ルート）
-    function findPath(cols, rows, start, end, grid) {
-        // 各プリセットごとの確実に動く完全解答ルートを返す
-        if(cols === 12) {
-            // 12x12の正解ルート座標配列
-            let p = [start];
-            let curr = [...start];
-            // 簡易的に外周・主要通路を通る完璧な12x12ルート座標を構築
-            // (実際のソルバー演算の代わりに事前検証済みパスを返します)
-            let demoPath = [
-                start, [2,5], [1,5], [1,0], [12,0], [12,12], [0,12], [0,4], [1,4], [1,3],
-                [3,3], [3,2], [5,2], [5,1], [7,1], [7,3], [9,3], [9,1], [11,1], [11,3],
-                [10,3], [10,5], [8,5], [8,6], [6,6], [6,5], [4,5], [4,7], [2,7], [2,9],
-                [4,9], [4,11], [6,11], [6,9], [7,9], [7,11], [10,11], [10,9], [12,9], [12,7],
-                [9,7], [9,9], [8,9], [8,8], [5,8], [5,10], [3,10], [3,8], [1,8], [1,10],
-                [3,10], end
-            ];
-            // 安全のため簡易ストレージから正確なルートを生成
-            return generateValidDemoPath(cols, rows, start, end);
-        } else {
-            return generateValidDemoPath(cols, rows, start, end);
+        return true;
+      }
+
+      function enqueueNeighbors(eid, queue) {
+        const [u, v] = edgeVerts[eid];
+        queue.push({ type: 'vert', id: u });
+        queue.push({ type: 'vert', id: v });
+        const cells = edgeCells[eid];
+        for (let i = 0; i < cells.length; i++) {
+          queue.push({ type: 'cell', id: cells[i] });
         }
-    }
+      }
 
-    function generateValidDemoPath(cols, rows, start, end) {
-        // 確実につながる一筆書きパスを生成
-        let path = [start];
-        let r = start[0], c = start[1];
-        // 渦巻き状またはジグザグに確実にendへ到達するダミー保証パス
-        while(r !== end[0] || c !== end[1]) {
-            if(r < end[0]) r++;
-            else if(r > end[0]) r--;
-            else if(c < end[1]) c++;
-            else if(c > end[1]) c--;
-            path.push([r, c]);
-            if(path.length > 200) break;
+      // Choose the best undecided edge to branch on (prioritize edges connected to active path ends or constrained cells)
+      function pickBranchEdge(state) {
+        let bestEid = -1;
+        let bestScore = -1;
+
+        for (let eid = 0; eid < numEdges; eid++) {
+          if (state[eid] !== -1) continue;
+          let score = 0;
+          const [u, v] = edgeVerts[eid];
+
+          // Check vertex degrees
+          for (const vid of [u, v]) {
+            if (isEndpoint[vid]) score += 40;
+            const ve = vertEdges[vid];
+            let on = 0;
+            let undec = 0;
+            for (let i = 0; i < ve.length; i++) {
+              if (state[ve[i]] === 1) on++;
+              else if (state[ve[i]] === -1) undec++;
+            }
+            if (on === 1) score += 50 + (4 - undec) * 10;
+          }
+
+          // Check adjacent cells
+          const cells = edgeCells[eid];
+          for (let i = 0; i < cells.length; i++) {
+            const cl = flatClues[cells[i]];
+            if (cl !== -1) {
+              score += 15 + cl * 5;
+            }
+          }
+
+          if (score > bestScore) {
+            bestScore = score;
+            bestEid = eid;
+          }
         }
-        // 実用的なテスト用として確実に全マスを巡回する美しい形に調整
-        return [
-            start, [start[0], start[1]+1], [0, start[1]+1], [0, 0], 
-            [rows, 0], [rows, cols], [0, cols], [0, end[1]], end
-        ];
-    }
+        return bestEid;
+      }
 
-    function generateAsciiMap(cols, rows, path, grid) {
-        return "【一筆書き完全クリア図】\nStart: " + path[0] + " -> End: " + path[path.length-1] + "\n総ステップ数: " + path.length + "歩\n(プレビュー画面のオレンジ色の線をご確認ください)";
-    }
-</script>
+      function verifyFinalSolution(state) {
+        // Verify all cell clues
+        for (let cid = 0; cid < R * C; cid++) {
+          const cl = flatClues[cid];
+          if (cl !== -1) {
+            let on = 0;
+            for (const eid of cellEdges[cid]) if (state[eid] === 1) on++;
+            if (on !== cl) return false;
+          }
+        }
+        // Trace from startId to endId and make sure all '1' edges are visited
+        let totalOn = 0;
+        for (let eid = 0; eid < numEdges; eid++) if (state[eid] === 1) totalOn++;
 
+        let cur = startId;
+        let prevEid = -1;
+        let steps = 0;
+        const pathVerts = [[Math.floor(cur / (C + 1)), cur % (C + 1)]];
+
+        while (cur !== endId) {
+          let nextEid = -1;
+          for (const eid of vertEdges[cur]) {
+            if (state[eid] === 1 && eid !== prevEid) {
+              nextEid = eid;
+              break;
+            }
+          }
+          if (nextEid === -1) return null;
+          const [u, v] = edgeVerts[nextEid];
+          cur = (u === cur) ? v : u;
+          prevEid = nextEid;
+          steps++;
+          pathVerts.push([Math.floor(cur / (C + 1)), cur % (C + 1)]);
+          if (steps > totalOn) return null;
+        }
+
+        if (steps !== totalOn) return null;
+        return pathVerts;
+      }
+
+      let finalState = null;
+      let finalPath = null;
+
+      function dfs(state) {
+        if (!propagateAndCheck(state)) return false;
+
+        const branchEid = pickBranchEdge(state);
+        if (branchEid === -1) {
+          const path = verifyFinalSolution(state);
+          if (path) {
+            finalState = state;
+            finalPath = path;
+            return true;
+          }
+          return false;
+        }
+
+        // Try setting edge to 1 first, then 0
+        const copy1 = new Int8Array(state);
+        copy1[branchEid] = 1;
+        if (dfs(copy1)) return true;
+
+        const copy0 = new Int8Array(state);
+        copy0[branchEid] = 0;
+        if (dfs(copy0)) return true;
+
+        return false;
+      }
+
+      const solved = dfs(initialState);
+      if (!solved || !finalState) return null;
+
+      // Convert flat state back to 2D h and v arrays
+      const h = Array.from({ length: R + 1 }, () => new Array(C).fill(false));
+      const v = Array.from({ length: R }, () => new Array(C + 1).fill(false));
+
+      for (let r = 0; r <= R; r++) {
+        for (let c = 0; c < C; c++) {
+          h[r][c] = finalState[r * C + c] === 1;
+        }
+      }
+      for (let r = 0; r < R; r++) {
+        for (let c = 0; c <= C; c++) {
+          v[r][c] = finalState[numH + r * (C + 1) + c] === 1;
+        }
+      }
+
+      return { edges: { h, v }, path: finalPath };
+    }
+  </script>
 </body>
 </html>
