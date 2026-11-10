@@ -470,26 +470,55 @@
       }
 
       // 2. Solved Path Lines (if solved)
-      if (solvedEdges) {
-        // Horizontal edges
+      if (activeStepState) {
+        // ステップ解説モードの描画
+        for (let r = 0; r <= rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const x1 = pad + c * cellSize;
+            const y1 = pad + r * cellSize;
+            const x2 = pad + (c + 1) * cellSize;
+            const st = activeStepState.h[r][c]; // 1:線, 0:×, -1:未確定
+            const isNew = activeStepState.newH[r][c];
+            if (st === 1) {
+              drawLineSegment(svg, x1, y1, x2, y1, isNew ? "#06b6d4" : "#ea580c");
+            } else if (st === 0) {
+              drawCrossMark(svg, (x1 + x2) / 2, y1, isNew ? "#0891b2" : "#94a3b8");
+            }
+          }
+        }
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c <= cols; c++) {
+            const x1 = pad + c * cellSize;
+            const y1 = pad + r * cellSize;
+            const y2 = pad + (r + 1) * cellSize;
+            const st = activeStepState.v[r][c];
+            const isNew = activeStepState.newV[r][c];
+            if (st === 1) {
+              drawLineSegment(svg, x1, y1, x1, y2, isNew ? "#06b6d4" : "#ea580c");
+            } else if (st === 0) {
+              drawCrossMark(svg, x1, (y1 + y2) / 2, isNew ? "#0891b2" : "#94a3b8");
+            }
+          }
+        }
+      } else if (solvedEdges) {
+        // フル解答モードの描画
         for (let r = 0; r <= rows; r++) {
           for (let c = 0; c < cols; c++) {
             if (solvedEdges.h[r][c]) {
               const x1 = pad + c * cellSize;
               const y1 = pad + r * cellSize;
               const x2 = pad + (c + 1) * cellSize;
-              drawLineSegment(svg, x1, y1, x2, y1);
+              drawLineSegment(svg, x1, y1, x2, y1, "#ea580c");
             }
           }
         }
-        // Vertical edges
         for (let r = 0; r < rows; r++) {
           for (let c = 0; c <= cols; c++) {
             if (solvedEdges.v[r][c]) {
               const x1 = pad + c * cellSize;
               const y1 = pad + r * cellSize;
               const y2 = pad + (r + 1) * cellSize;
-              drawLineSegment(svg, x1, y1, x1, y2);
+              drawLineSegment(svg, x1, y1, x1, y2, "#ea580c");
             }
           }
         }
@@ -1325,7 +1354,12 @@
     }
 
     function nextProcessStep() {
+      // まだステップが生成されていなければその場で生成する
+      if (deductionSteps.length === 0 && solvedEdges) {
+        buildDeductionProcess(rows, cols, clues, endpoints, solvedEdges);
+      }
       if (deductionSteps.length === 0) return;
+
       if (currentStepIdx >= deductionSteps.length - 1) {
         // フル解答表示に戻す
         activeStepState = null;
